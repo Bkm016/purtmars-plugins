@@ -1,0 +1,84 @@
+:root {
+    --ifm-color-primary: #008cb4;
+    --ifm-color-primary-dark: #007ea2;
+    --ifm-color-primary-darker: #007799;
+    --ifm-color-primary-darkest: #00627e;
+    --ifm-color-primary-light: #009ac6;
+    --ifm-color-primary-lighter: #00a1cf;
+    --ifm-color-primary-lightest: #00b6ea;
+    --ifm-code-font-size: 95%;
+    --ifm-font-size-base: 95%;
+    --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='dark'] {
+    --ifm-color-primary: #53d5fd;
+    --ifm-color-primary-dark: #32cdfd;
+    --ifm-color-primary-darker: #21c9fc;
+    --ifm-color-primary-darkest: #03b2e8;
+    --ifm-color-primary-light: #74ddfd;
+    --ifm-color-primary-lighter: #85e1fe;
+    --ifm-color-primary-lightest: #b7edfe;
+    --ifm-color-success-dark: #2dd326;
+    --ifm-code-font-size: 95%;
+    --ifm-font-size-base: 95%;
+    --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+}
+
+.theme-doc-sidebar-menu {
+    padding: 12px;
+}
+
+.navbar {
+    height: 65px;
+}
+
+.hero__title {
+    font-size: 5rem;
+    color: white;
+}
+
+.hero__subtitle {
+    color: white;
+}
+
+.sidebar_re4s {
+    padding-left: 1rem;
+}
+
+.sidebarItemTitle_pO2u {
+    color: var(--ifm-color-primary);
+}
+
+.font-light {
+    color: var(--ifm-color-primary-lightest);
+}
+
+.font-dark {
+    color: var(--ifm-color-primary-dark);
+}
+
+.navbar__title,h1 {
+    color: var(--ifm-color-primary);
+}
+
+.navbar__title {
+    padding-left: 0.5rem;
+}
+
+.navbar__brand {
+    padding-left: 1rem;
+}
+
+.navbar__item {
+    padding-right: 1rem;
+}
+
+h1 {
+    padding-top: 0.5rem;
+}
+
+.container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
