@@ -8,6 +8,8 @@
     --ifm-color-primary-lightest: #00b6ea;
     --ifm-code-font-size: 95%;
     --ifm-font-size-base: 95%;
+    --ifm-color-success-contrast-background: #eaf7ff;
+    --ifm-color-success-dark: #00a1cf;
     --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
 }
 
@@ -19,9 +21,10 @@
     --ifm-color-primary-light: #74ddfd;
     --ifm-color-primary-lighter: #85e1fe;
     --ifm-color-primary-lightest: #b7edfe;
-    --ifm-color-success-dark: #2dd326;
     --ifm-code-font-size: 95%;
     --ifm-font-size-base: 95%;
+    --ifm-color-success-contrast-background: #004052 !important;
+    --ifm-color-success-dark: #00a1cf;
     --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }
 
@@ -74,11 +77,22 @@
     padding-right: 1rem;
 }
 
+.container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
+
+#game_img {
+    box-shadow: black 1px 1px 5px;
+    border-radius: 8px;
+    margin-bottom: 1rem
+}
+
 h1 {
     padding-top: 0.5rem;
 }
 
-.container {
-    padding-left: 2rem;
-    padding-right: 2rem;
+code {
+    padding-left: 5px;
+    padding-right: 5px;
 }

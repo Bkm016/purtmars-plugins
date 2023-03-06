@@ -2,7 +2,7 @@
 sidebar_position: 1
 ---
 
-# 文档
+# 介绍
 
 > [点击跳转到 Kether 文档](https://www.yuque.com/sacredcraft/kether)
 
