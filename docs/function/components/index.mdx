@@ -1,0 +1,26 @@
+---
+sidebar_position: 1
+---
+
+# 介绍
+
+行内复合文本是 [通用语言文件](/function/language) 中 [复合文本](/function/language#复合文本) 的一种特殊书写形式，将 `args` 部分合并到正文中，以便在任何地方使用，而不仅仅是在语言文件中。
+
+```markdown
+你好，朋友！感谢您使用 [&9&nTabooLib Components](url=https://plugins.ptms.ink/function/components/) 复合文本!
+```
+
+原为：
+
+```yaml
+example-json:
+  ==: JSON
+  text: '你好，朋友！感谢您使用 [&9&nTabooLib Components] 复合文本!'
+  args:
+    - url: 'https://plugins.ptms.ink/function/components/'
+```
+
+
+效果如下：
+
+<img id="game_img" src="/img/Xnip2023-03-06_20-17-36.png" width="600"/>

@@ -8,7 +8,7 @@ sidebar_position: 1
 
 常见的表现形式如下所示：
 
-```yaml
+```yaml title="zh_CN.yml"
 editor-input-enums: '请选择 {0}'
 editor-input-chat:
   - ==: JSON
@@ -37,7 +37,7 @@ editor-input-chat:
 
 在文件中，每一行都是一个 `键值对`，键值对的格式为 `键: 值` 或 `键: [值1, 值2, 值3]`。
 
-```yaml
+```yaml title="zh_CN.yml"
 example-language: '这是一个示例语言文件'
 example-language-list:
   - '这是一个示例语言文件'
@@ -51,9 +51,53 @@ example-language-list:
 
 通用语言文件的基本输出方式如下所示，开发者可能会增加新的输出方式。
 
-- `文本` : 以字符串的形式输出。
-- `复合文本` : 简单来说就是输出 Json 格式的文本。
-- `动作栏` : 在动作栏中显示文本。
-- `标题` : 在标题中显示文本。
-- `音效` : 播放音效。
-- `命令` : 执行控制台命令。
+### 文本
+
+以字符串的形式输出，这是最基本的输出方式，任何未定义类型的值都会被当作文本输出。
+
+```yaml title="zh_CN.yml"
+example-text: '这是一个示例文本'
+```
+
+### 复合文本
+
+复合文本是一种特殊的文本，它可以包含更多的信息，例如点击事件、悬停事件等。
+
+:::tip
+
+简单来说就是输出 Json 格式的文本。
+
+:::
+
+复合文本的格式如下所示：
+
+```yaml title="zh_CN.yml"
+example-json:
+  ==: JSON
+  text: '这是一条[&9&n可点击]的信息'
+  args:
+    - hover: '你好'
+      command: '/say Hello'
+```
+
+文本中的 `[]` 部分可以在 `args` 中进行修饰，效果如下所示：
+
+<img id="game_img" src="/img/Xnip2023-03-06_12-29-46.png" width="600"/>
+
+当然，你也可以使用 `\` 符号来转义 `[]`，使其能够正常输出。
+
+```yaml title="zh_CN.yml"
+example-json:
+  ==: JSON
+  text: '这是一条[&9&n\[可点击\]]的信息'
+  args:
+    - hover: '你好'
+      command: '/say Hello'
+```
+
+<img id="game_img" src="/img/Xnip2023-03-09_21-49-53.png" width="600"/>
+
+<details>
+    <summary>「展开 / 收起详情」完整参数 🔍</summary>
+    还没写
+</details>
