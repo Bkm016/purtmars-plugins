@@ -1,0 +1,300 @@
+---
+sidebar_position: 3
+---
+
+# 插件命令
+
+在 Artifex 完全启动后，您可以通过输入 `/artifex` 或 `/art` 命令得到以下帮助：
+
+```
+Usage: /artifex
+        ├── project
+        │       ├── run <project> [<args>]
+        │       ├── release <project> 
+        │       ├── reload <project> [<args>]
+        │       ├── status
+        │       └── build
+        │             ├── zip <project> [<args>]
+        │             └── plugin <project> <args>
+        ├── run <file> [<args>]
+        ├── invoke <name> <method> [<args>]
+        ├── compile <file> [<args>]
+        ├── release <file> [<args>]
+        ├── reload <file> [<args>]
+        ├── status
+        └── shell <script>
+```
+
+## $ run
+
+运行脚本文件，可向脚本传递参数。异步编译，主线程中运行。
+
+```
+/artifex run <file> [--C] [--M] [-A(name) (value)] [-P(name) (value)]
+```
+
+> 说明：
+
+```
+--C      # 强制编译（跳过编译检查）
+```
+
+```
+--M      # 挂载脚本（脚本在运行后保留，监听器、命令等资源持续有效）
+```
+
+```
+> art status
+[00:00:00 INFO]: [Artifex] 当前正在运行的脚本:
+[00:00:00 INFO]: [Artifex] - Test
+```
+
+```
+-A(name) # 运行参数（不影响编译检查的参数类型，在脚本中通过 runArgs 获取）
+-P(name) # 编译参数（脚本的构造参数，在脚本中可直接获取）
+```
+
+这里的编译参数为 "Constructor Parameters" 并非 "Compiler Options"。  
+其修改后需要重新编译，因此在 Artifex 中称之为 "编译参数"。
+
+> 演示：
+
+```
+> art run test -Avar1 a1 -Avar2 a2 -Pvar3 p3
+[00:00:00 INFO]: [Artifex] 脚本缓存不存在, 将开始编译...
+[00:00:00 INFO]: [Artifex] 正在编译...
+[00:00:00 INFO]: [Artifex] > 编译参数: {var3=p3}
+[00:00:00 INFO]: [Artifex] 编译成功 (0s)
+[00:00:00 INFO]: [Artifex] 正在运行...
+[00:00:00 INFO]: [Artifex] > 运行参数: {var1=a1, var2=a2}
+[00:00:00 INFO]: [Artifex] > 编译参数: {var3=p3}
+[00:00:00 INFO]: [Artifex] 你好，世界
+[00:00:00 INFO]: [Artifex] 脚本 Test 已释放.
+[00:00:00 INFO]: [Artifex] 运行成功 (0s)
+```
+
+```
+> art run test --M -Avar1 a1
+[00:00:00 INFO]: [Artifex] 脚本内容变动, 将重新编译...
+[00:00:00 INFO]: [Artifex] 原版本: 9ee5faed7879517fa64f21b5426fc9fea0eee9e2
+[00:00:00 INFO]: [Artifex] 新版本: 95a582239fb9126e49ef4ad9b38f53fca7350ebb
+[00:00:00 INFO]: [Artifex] 正在编译...
+[00:00:00 INFO]: [Artifex] > 编译参数: {}
+[00:00:00 INFO]: [Artifex] 编译成功 (0s)
+[00:00:00 INFO]: [Artifex] 正在运行...
+[00:00:00 INFO]: [Artifex] > 运行参数: {var1=a1}
+[00:00:00 INFO]: [Artifex] > 编译参数: {}
+[00:00:00 INFO]: [Artifex] 你好，世界
+[00:00:00 INFO]: [Artifex] 脚本已挂载.
+[00:00:00 INFO]: [Artifex] 运行成功 (0s)
+```
+
+## $ invoke
+
+运行脚本的对外接口，可传递参数。在主线程中运行。
+
+```
+/artifex invoke <file> <method> [<value1> <value2> ...]
+```
+
+在脚本中添加特定的方法来对接指令：
+
+```kotlin
+fun invoke(method: String, args: Array<Any?>): Any? {
+    info("Calling: $method")
+    return "OK"
+}
+```
+
+> 演示：
+
+```
+> art invoke Test test
+[00:00:00 INFO]: [Artifex] 正在运行...
+[00:00:00 INFO]: [Artifex] > 方法: test
+[00:00:00 INFO]: [Artifex] > 参数: []
+[00:00:00 INFO]: [Artifex] Calling: test
+[00:00:00 INFO]: [Artifex] > 运行结果: OK (java.lang.String)
+```
+
+## $ compile
+
+编译脚本文件，可传递编译参数。异步编译。
+
+```
+/artifex compile <file> [-P(name) (characteristic value)]
+```
+
+> 说明：
+
+```
+-P(name) # 编译参数（与 run 命令相同，但传递的值为特征值，仅用于识别参数类型）
+```
+
+实际使用时可能会传什么这里就写什么，例如 `0`, `1.0`, `abc` 等。
+
+> 演示：
+
+```
+> art compile test
+[00:00:00 INFO]: [Artifex] 正在编译...
+[00:00:00 INFO]: [Artifex] > 编译参数: {}
+[00:00:00 INFO]: [Artifex] 编译成功 (0s)
+```
+
+```
+> art compile test -Pvar1 0
+[00:00:00 INFO]: [Artifex] 正在编译...
+[00:00:00 INFO]: [Artifex] > 编译参数: {var1=p0}
+[00:00:00 INFO]: [Artifex] 编译成功 (0s)
+```
+
+## $ release
+
+释放正在运行中的脚本，若脚本正在被引用则产生警告并阻止释放。
+
+```
+/artifex release <file> [--F]
+```
+
+> 说明：
+
+```
+--F      # 强制释放（将同时释放引用该脚本的其他脚本）
+```
+
+> 演示：
+
+```
+> art release test
+[00:00:00 INFO]: [Artifex] 脚本 Test 已释放.
+```
+
+若脚本 Test 正在被引用：
+
+```
+> art release test
+[00:00:00 INFO]: [Artifex] 脚本 Test 正在被引用, 请先释放 [TestImpl]
+[00:00:00 INFO]: [Artifex] 如果你需要 Artifex 帮你释放, 请使用: /artifex release test --F
+```
+
+```
+> art release test --F
+[00:00:00 INFO]: [Artifex] 脚本 TestImpl 已释放.
+[00:00:00 INFO]: [Artifex] 脚本 Test 已释放.
+```
+
+## $ reload
+
+重新运行脚本，使用方式及特性与 run 相同。自动挂载。若脚本正在被引用则产生警告。
+
+```
+/artifex reload <file> [--C] [-A(name) (value)] [-P(name) (value)]
+```
+
+> 演示：
+
+```
+> art reload test
+[00:00:00 INFO]: [Artifex] 脚本内容变动, 将重新编译...
+[00:00:00 INFO]: [Artifex] 原版本: 95a582239fb9126e49ef4ad9b38f53fca7350ebb
+[00:00:00 INFO]: [Artifex] 新版本: 1843ff513c0c2e79974d32c385fbda77b7945713
+[00:00:00 INFO]: [Artifex] 正在编译...
+[00:00:00 INFO]: [Artifex] > 编译参数: {}
+[00:00:00 INFO]: [Artifex] 编译成功 (1s)
+[00:00:00 INFO]: [Artifex] 脚本 Test 已释放.
+[00:00:00 INFO]: [Artifex] 正在运行...
+[00:00:00 INFO]: [Artifex] > 运行参数: {}
+[00:00:00 INFO]: [Artifex] > 编译参数: {}
+[00:00:00 INFO]: [Artifex] 脚本已挂载.
+[00:00:00 INFO]: [Artifex] 运行成功 (0s)
+```
+
+若脚本内容发生变动将在异步重新编译，直到 **编译成功** 后再重载脚本。
+
+若脚本 Test 正在被引用：
+
+```
+> art reload test
+[00:00:00 INFO]: [Artifex] 脚本 test 正在被引用, 请在这之后重载 [TestImpl] 来更新
+[00:00:00 INFO]: [Artifex] 脚本 Test 已释放.
+[00:00:00 INFO]: [Artifex] 正在运行...
+[00:00:00 INFO]: [Artifex] > 运行参数: {}
+[00:00:00 INFO]: [Artifex] > 编译参数: {}
+[00:00:00 INFO]: [Artifex] 脚本已挂载.
+[00:00:00 INFO]: [Artifex] 运行成功 (0s)
+```
+
+该命令不提供连锁重载。
+
+## $ status
+
+查看当前运行中的所有脚本。
+
+```
+> art status
+[00:00:00 INFO]: [Artifex] 当前正在运行的脚本：
+[00:00:00 INFO]: [Artifex] - Test
+[00:00:00 INFO]: [Artifex] - TestImpl
+[00:00:00 INFO]: [Artifex]   = 持有资源
+[00:00:00 INFO]: [Artifex]      - 监听器: PlayerJoinEvent
+[00:00:00 INFO]: [Artifex]      - 调度器: 20 (异步)
+[00:00:00 INFO]: [Artifex]   = 引用脚本
+[00:00:00 INFO]: [Artifex]      - Test
+```
+
+## $ shell
+
+直接运行一段脚本。
+
+```
+> art shell info("Hello World!")
+[00:00:00 INFO]: [Artifex] 正在编译...
+[00:00:00 INFO]: [Artifex] 编译成功 (0s)
+[00:00:00 INFO]: [Artifex] 正在运行...
+[00:00:00 INFO]: [Artifex] Hello World!
+[00:00:00 INFO]: [Artifex] 运行成功 (0s)
+```
+
+## $ project
+
+该命令用于控制脚本工程的运行与释放，使用方式与上方命令基本相同。
+
+```
+/artifex project run/reload <project> [--C]
+```
+
+```
+/artifex project release <project>
+```
+
+```
+/artifex project status
+```
+
+演示：
+
+```
+> art project run test
+[00:00:00 INFO]: [Artifex] 正在启动 Test...
+[00:00:00 INFO]: [Artifex] 脚本已挂载.
+[00:00:00 INFO]: [Artifex] 运行成功 (0s)
+```
+
+```
+> art project status
+[00:00:00 INFO]: [Artifex] 当前工程：
+[00:00:00 INFO]: [Artifex] - Test (test)
+```
+
+## 编译检查
+
+部分命令拥有一种检查编译的逻辑，仅当文件发生修改时重新编译。但这种逻辑无法检查 `@Include` 中的脚本，这将导致只修改 `@Include` 中的脚本但不修改主脚本时无法通过编译检查。
+
+> 意思就是只修改库不会触发重新编译。
+
+因此特别规定了一种参数 `--C`，在上面的文档中也已说明。当您修改了 `@Include` 中的脚本但未修改主脚本时，可以在运行或重载命令中添加 `--C` 参数来强制重新编译。
+
+```
+/artifex reload test --C
+```
