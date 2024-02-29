@@ -1,0 +1,41 @@
+---
+sidebar_position: 1
+---
+
+# 条目检索
+
+在游戏中通过指令，可以帮助您快速检索需要的任务条目类型。
+
+```
+/chemdah api objective <name>
+```
+
+<img id="game_img" src="/img/command-quest-find.png" width="600" style={{marginBottom: "1rem"}}/>
+
+以 `exp change` 为例:
+
++ 可用条件：`amount`, `position`, `entity`
++ 可用条件变量：`amount`
++ 可用目标：`amount`
++ 可用目标变量：`amount`
+
+在配置文件中如下所示：
+
+```yaml title="演示任务"
+exp_change_quest:
+  task:
+    0:
+      objective: exp change
+      condition:
+        amount: 10
+      goal:
+        amount: 5
+```
+
+**任务说明**：单次获得超过 10 点经验累计 5 次
+
+:::tip
+
+查字典，懂吗? 😎
+
+:::

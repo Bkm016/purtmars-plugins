@@ -1,0 +1,139 @@
+---
+sidebar_position: 2
+---
+
+# 条目类型
+
+在下面的表格中，您可以找到截止 2024/02/29 所有可用的条目类型。
+
++ 包含 `[I]` 为 **整型** 类型计数器
++ 包含 `[F]` 为 **浮点** 类型计数器
++ 包含 `[D]` 表示依赖特定的插件
++ 包含 `[U]` 表示我也不知道是什么东西
++ 包含 `[P]` 表示 `Paper` 特供
+
+所有 **计数器** 均包含 `amount` (Int) **目标** 与 **目标变量**，下文不再列出。除非另行说明，均表示相关事件触发 **多少次**。
+
+```yaml title="例子"
+test_quest:
+  task:
+    0:
+      objective: anpc damage
+      goal:
+        # 计数器任务默认的 amount 目标
+        # 触发 10 次
+        amount: 10
+```
+
+### `[ID]` anpc damage
+
+左键点击 Adyeshach 单位时。
+
+| 条件         | [解释器](/plugin/chemdah/start/quest/task/parser) | 判定     | 说明 |
+|------------|------------------------------------------------|--------|----|
+| `position` | Position                                       | 单位坐标   | 无  |
+| `id`       | String & List                                  | 单位序号   | 无  |
+| `type`     | String & List                                  | 单位类型   | 无  |
+| `item`     | ItemStack                                      | 玩家主手物品 | 无  |
+
+| 条件变量 | 类型     | 说明   |
+|------|--------|------|
+| `id` | String | 单位序号 |
+
+:::tip
+
+几乎所有条目都有 `position` 条件，用于判断事件 `主体` 的位置。
+
+:::
+
+### `[ID]` anpc interact
+
+右键点击 Adyeshach 单位时。
+
+| 条件                 | 解释器           | 判定   | 说明 |
+|--------------------|---------------|------|----|
+| `position`         | Position      | 单位坐标 | 无  |
+| `position:clicked` | Position      | 点击位置 | 无  |
+| `id`               | String & List | 单位序号 | 无  |
+| `type`             | String & List | 单位类型 | 无  |
+| `hand`             | Boolean       | 是否主手 | 无  |
+| `item`             | ItemStack     | 交互物品 | 无  |
+
+| 条件变量 | 类型     | 说明   |
+|------|--------|------|
+| `id` | String | 单位序号 |
+
+### `[ID]` brewery barrel access
+
+打开酿酒台时。
+
+| 条件         | 解释器           | 判定    | 说明 |
+|------------|---------------|-------|----|
+| `position` | Position      | 酿酒台位置 | 无  |
+| `material` | Material      | 酿酒台材质 | 无  |
+| `face`     | String & List | 酿酒台朝向 | 无  |
+
+### `[ID]` brewery barrel create
+
+创建酿酒台时。
+
+| 条件         | 解释器           | 判定    | 说明 |
+|------------|---------------|-------|----|
+| `position` | Position      | 酿酒台位置 | 无  |
+
+### `[ID]` brewery barrel destroy
+
+破坏酿酒台时。
+
+| 条件         | 解释器           | 判定    | 说明 |
+|------------|---------------|-------|----|
+| `position` | Position      | 酿酒台位置 | 无  |
+| `reason`   | String & List | 破坏原因  | 无  |
+
+### `[ID]` brewery drink
+
+喝酒时。
+
+| 条件         | 解释器       | 判定    | 说明 |
+|------------|-----------|-------|----|
+| `position` | Position  | 酿酒台位置 | 无  |
+| `brew`     | ItemStack | 酒     | 无  |
+| `alcohol`  | Int       | 酒精度   | 无  |
+| `quality`  | Int       | 质量    | 无  |
+
+| 条件变量      | 类型  | 说明  |
+|-----------|-----|-----|
+| `alcohol` | Int | 酒精度 |
+| `quality` | Int | 质量  |
+
+### `[ID]` brewery puke
+
+呕吐时。
+
+| 条件         | 解释器      | 判定   | 说明 |
+|------------|----------|------|----|
+| `position` | Position | 玩家位置 | 无  |
+| `count`    | Int      | 呕吐次数 | 无  |
+
+| 条件变量    | 类型  | 说明   |
+|---------|-----|------|
+| `count` | Int | 呕吐次数 |
+
+### `[IDU]` brewery push
+
+```
+com.dre.brewery.api.events.PlayerPushEvent
+```
+
+| 条件         | 解释器      | 判定   | 说明 |
+|------------|----------|------|----|
+| `position` | Position | 玩家位置 | 无  |
+| `x`        | Int      | -    | 无  |
+| `y`        | Int      | -    | 无  |
+| `z`        | Int      | -    | 无  |
+
+| 条件变量    | 类型  | 说明   |
+|---------|-----|------|
+| `x`     | Int | -    |
+| `y`     | Int | -    |
+| `z`     | Int | -    |
