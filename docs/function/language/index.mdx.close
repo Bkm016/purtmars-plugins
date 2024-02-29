@@ -12,7 +12,7 @@ sidebar_position: 1
 editor-input-enums: '请选择 {0}'
 editor-input-chat:
   - ==: JSON
-    text: ' &5&l‹ ›&r &7请在聊天框中输入你要设置的值, 当前值为: &f&n[{0}]'
+    text: ' &5&l‹ ›&r &7请在聊天框中输入您要设置的值, 当前值为: &f&n[{0}]'
     args:
       - suggest: '{0}'
         hover: '点击复制'
@@ -84,7 +84,7 @@ example-json:
 
 <img id="game_img" src="/img/Xnip2023-03-06_12-29-46.png" width="600"/>
 
-当然，你也可以使用 `\` 符号来转义 `[]`，使其能够正常输出。
+当然，您也可以使用 `\` 符号来转义 `[]`，使其能够正常输出。
 
 ```yaml title="zh_CN.yml"
 example-json:

@@ -1,0 +1,97 @@
+---
+sidebar_position: 1
+---
+
+# 任务结构
+
+所有任务文件均在 `Chemdah/core/quest` 目录下，您可以在这个目录下建立子目录来分类。
+
+```yaml
+Chemdah
+└── core ······················· 核心目录
+    ├── conversation ··········· 对话目录
+    │   └── example.yml
+    ├── quest ·················· 任务目录
+    │   └── example.yml
+    ├── conversation.yml ······· 对话配置文件
+    └── group.yml ·············· 任务组配置文件
+```
+
+下面是一个 **最简单** 的任务结构，包含了 1 个基本条目:
+
+```yaml title="演示任务 1"
+10_diamond_ore:
+  task:
+    0:
+      objective: block break
+      condition:
+        material: diamond_ore
+      goal:
+        amount: 10
+```
+
+:::tip
+
+任务是 Chemdah 的核心，其结构是扁平化的，即任务之间没有嵌套关系。
+
+:::
+
+之后的功能都会围绕这个基本结构进行扩展。
+
+```yaml title="演示任务（注释说明）"
+# 任务的唯一标识符（全局不可重复）
+10_diamond_ore:
+  # 任务条目
+  # 通俗来说，就是任务中的每个目标
+  task:
+    # 条目序号
+    # 用于区分任务中的不同目标（在单个任务中，序号不可重复）
+    0:
+      # 类型
+      # 例如：block break, block place ...
+      # 你可以在游戏中使用 /cha objective <name> 来搜索可用的目标类型
+      objective: block break
+      # 条件
+      # 不同目标类型支持不同的条件，后面会进行归类说明
+      condition:
+        material: diamond_ore
+      # 目标
+      # 完成这个条目的最终要求
+      # 例如：挖 10 次钻石矿
+      goal:
+        amount: 10
+```
+
+:::tip
+
+此时这个任务不含有任何附加功能，例如 **奖励、提示** 等。
+
+:::
+
+与其说是任务，不如举个更贴切的例子 —— **待办事项**。
+
+<img id="game_img" src="/img/quest-todo.png" width="350" style={{marginBottom: "1rem"}}/>
+
+左侧的分类就是 **任务**，右侧的每一条就是 **条目**。
+
+## 元数据
+
+元数据通常指任务节点下的 `meta` 字段，用于存储任务的一些额外信息。
+
+```yaml title="演示任务"
+10_diamond_ore:
+  # 元数据节点
+  meta:
+    # 任务的名称
+    name: Break 10 Diamond Ore
+    # 任务类型
+    type: daily
+```
+
+:::tip
+
+任务类型是可以写成列表形式的，例如 `type: [daily, weekly]`。
+
+:::
+
+任务类型可用于 **分组控制** 或在 [UI 模块](/plugin/chemdah/start/module/ui) 中显示。

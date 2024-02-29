@@ -175,7 +175,7 @@ fun invoke(method: String, args: Array<Any?>): Any? {
 ```
 > art release test
 [00:00:00 INFO]: [Artifex] 脚本 Test 正在被引用, 请先释放 [TestImpl]
-[00:00:00 INFO]: [Artifex] 如果你需要 Artifex 帮你释放, 请使用: /artifex release test --F
+[00:00:00 INFO]: [Artifex] 如果您需要 Artifex 帮您释放, 请使用: /artifex release test --F
 ```
 
 ```
