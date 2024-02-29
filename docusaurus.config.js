@@ -51,7 +51,13 @@ const config = {
                 logo: {
                     src: 'img/icon.png',
                 },
-                items: [],
+                items: [
+                    {
+                        "href": "https://github.com/Bkm016/purtmars-plugins",
+                        "label": "文档源码",
+                        "position": "right"
+                    }
+                ],
             },
             footer: {
                 copyright: `Copyright © 2015 ~ ${new Date().getFullYear()} <b style="color: #0180c4">Purtmars Software</b> All Rights Reserved.`,

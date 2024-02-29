@@ -1,3 +1,3 @@
-# Purtmars Repository
+# Purtmars Plugins
 
-阿巴阿巴阿巴
+文档地址: [https://plugins.ptms.ink](https://plugins.ptms.ink)
