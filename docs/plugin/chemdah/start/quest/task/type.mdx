@@ -9,10 +9,19 @@ sidebar_position: 2
 + 包含 `[I]` 为 **整型** 类型计数器
 + 包含 `[F]` 为 **浮点** 类型计数器
 + 包含 `[D]` 表示依赖特定的插件
-+ 包含 `[U]` 表示我也不知道是什么东西
 + 包含 `[P]` 表示 `Paper` 特供
++ 包含 `[V]` 表示原版类型
++ 包含 `[C]` 表示 `Chemdah` 提供的特殊类型
 
-所有 **计数器** 均包含 `amount` (Int) **目标** 与 **目标变量**，下文不再列出。除非另行说明，均表示相关事件触发 **多少次**。
+## 阅读帮助
+
+看不懂下面的表格? 看这张图。
+
+<img id="game_img" src="/img/Xnip2024-03-01_12-40-15.png" width="600" style={{marginBottom: "0rem"}}/>
+
+## 通用目标
+
+所有 **计数器** 类型均包含 `amount` **目标** 与 **目标变量**，下文不再列出。除非另行说明，均表示相关事件触发**多少次**。
 
 ```yaml title="例子"
 test_quest:
@@ -24,6 +33,8 @@ test_quest:
         # 触发 10 次
         amount: 10
 ```
+
+## 类型一览
 
 ### `[ID]` anpc damage
 
@@ -53,7 +64,7 @@ test_quest:
 | 条件                 | 解释器           | 判定   | 说明 |
 |--------------------|---------------|------|----|
 | `position`         | Position      | 单位坐标 | 无  |
-| `position:clicked` | Position      | 点击位置 | 无  |
+| `position:clicked` | Vector        | 点击位置 | 无  |
 | `id`               | String & List | 单位序号 | 无  |
 | `type`             | String & List | 单位类型 | 无  |
 | `hand`             | Boolean       | 是否主手 | 无  |
@@ -119,7 +130,7 @@ test_quest:
 |---------|-----|------|
 | `count` | Int | 呕吐次数 |
 
-### `[IDU]` brewery push
+### `[ID]` brewery push
 
 ```
 com.dre.brewery.api.events.PlayerPushEvent
@@ -137,3 +148,1313 @@ com.dre.brewery.api.events.PlayerPushEvent
 | `x`     | Int | -    |
 | `y`     | Int | -    |
 | `z`     | Int | -    |
+
+### `[IP]` armor change
+
+穿戴盔甲时。
+
+| 条件         | 解释器           | 判定   | 说明                              |
+|------------|---------------|------|---------------------------------|
+| `position` | Position      | 玩家位置 | 无                               |
+| `slot`     | String & List | 盔甲槽  | `HEAD`, `CHEST`, `LEGS`, `FEET` |
+| `item`     | ItemStack     | 盔甲   | 无                               |
+
+### `[IP]` criterion grant
+
+获得成就时。
+
+| 条件            | 解释器           | 判定   | 说明 |
+|---------------|---------------|------|----|
+| `position`    | Position      | 玩家位置 | 无  |
+| `advancement` | String & List | -    | 无  |
+| `criterion`   | String & List | -    | 无  |
+
+### `[IP]` elytra boost
+
+使用鞘翅加速时。
+
+| 条件         | 解释器       | 判定   | 说明 |
+|------------|-----------|------|----|
+| `position` | Position  | 玩家位置 | 无  |
+| `item`     | ItemStack | 物品   | 无  |
+| `consume`  | Boolean   | 是否消耗 | 无  |
+| `firework` | Boolean   | 是否烟花 | 无  |
+
+### `[IP]` shoot projectile
+
+射出弹射物时。
+
+| 条件           | 解释器       | 判定   | 说明 |
+|--------------|-----------|------|----|
+| `position`   | Position  | 玩家位置 | 无  |
+| `projectile` | Entity    | 弹射物  | 无  |
+| `item`       | ItemStack | 物品   | 无  |
+| `consume`    | Boolean   | 是否消耗 | 无  |
+
+### `[IV]` block break
+
+破坏方块时。
+
+| 条件              | 解释器      | 判定      | 说明 |
+|-----------------|----------|---------|----|
+| `position`      | Position | 方块位置    | 无  |
+| `material`      | Material | 方块材质    | 无  |
+| `exp`           | Int      | 经验      | 无  |
+| `no-silk-touch` | Boolean  | 是否无精准采集 | 无  |
+
+| 条件变量  | 类型  | 说明 |
+|-------|-----|----|
+| `exp` | Int | 经验 |
+
+### `[IV]` block farm
+
+耕地时。
+
+| 条件         | 解释器           | 判定   | 说明                 |
+|------------|---------------|------|--------------------|
+| `position` | Position      | 方块位置 | 无                  |
+| `material` | Material      | 方块材质 | 无                  |
+| `face`     | String & List | 方块朝向 | 无                  |
+| `hand`     | String & List | 手    | `HAND`, `OFF_HAND` |
+| `item`     | ItemStack     | 物品   | 无                  |
+
+
+### `[IV]` harvest block
+
+（`PlayerHarvestBlockEvent`）收获方块时。
+
+| 条件         | 解释器           | 判定   | 说明 |
+|------------|---------------|------|----|
+| `position` | Position      | 方块位置 | 无  |
+| `material` | Material      | 方块材质 | 无  |
+| `item`     | ItemStack     | 物品   | 无  |
+
+### `[IV]` block ignite
+
+点燃方块时。
+
+| 条件                  | 解释器           | 判定     | 说明                                                                                                               |
+|---------------------|---------------|--------|------------------------------------------------------------------------------------------------------------------|
+| `position`          | Position      | 方块位置   | 无                                                                                                                |
+| `material`          | Material      | 方块材质   | 无                                                                                                                |
+| `material:igniting` | Material      | 点燃后的材质 | 无                                                                                                                |
+| `cause`             | String & List | 点燃原因   | [IgniteCuase](https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/event/block/BlockIgniteEvent.IgniteCause.html) |
+
+### `[IV]` block interact
+
+与方块交互时。
+
+| 条件         | 解释器           | 判定   | 说明 |
+|------------|---------------|------|----|
+| `position` | Position      | 方块位置 | 无  |
+| `material` | Material      | 方块材质 | 无  |
+| `action`   | String & List | 交互动作 | 无  |
+| `face`     | String & List | 方块朝向 | 无  |
+| `hand`     | String & List | 手    | 无  |
+| `item`     | ItemStack     | 物品   | 无  |
+
+### `[IV]` block place
+
+放置方块时。
+
+| 条件                 | 解释器           | 判定     | 说明 |
+|--------------------|---------------|--------|----|
+| `position`         | Position      | 方块位置   | 无  |
+| `material`         | Material      | 方块材质   | 无  |
+| `material:against` | Material      | 放置在的方块 | 无  |
+| `face`             | String & List | 方块朝向   | 无  |
+
+### `[IV]` entity combust
+
+实体被玩家点燃时。
+
+| 条件         | 解释器       | 判定   | 说明 |
+|------------|-----------|------|----|
+| `position` | Position  | 实体位置 | 无  |
+| `entity`   | Entity    | 实体   | 无  |
+
+### `[IV]` entity interact
+
+与实体交互时。
+
+| 条件                 | 解释器           | 判定   | 说明 |
+|--------------------|---------------|------|----|
+| `position`         | Position      | 实体位置 | 无  |
+| `position:clicked` | Vector        | 点击位置 | 无  |
+| `entity`           | Entity        | 实体   | 无  |
+| `hand`             | String & List | 手    | 无  |
+| `item`             | ItemStack     | 物品   | 无  |
+
+### `[IV]` entity tame
+
+驯服实体时。
+
+| 条件         | 解释器       | 判定   | 说明 |
+|------------|-----------|------|----|
+| `position` | Position  | 实体位置 | 无  |
+| `entity`   | Entity    | 实体   | 无  |
+
+### `[IV]` player anvil
+
+使用铁砧时。
+
+| 条件            | 解释器       | 判定    | 说明 |
+|---------------|-----------|-------|----|
+| `position`    | Position  | 铁砧位置  | 无  |
+| `text`        | String    | 重命名文本 | 无  |
+| `cost`        | Int       | 花费    | 无  |
+| `item`        | ItemStack | 产出物品  | 无  |
+| `item:matrix` | ItemStack | 消耗物品  | 无  |
+
+| 条件变量   | 类型     | 说明    |
+|--------|--------|-------|
+| `text` | String | 重命名文本 |
+| `cost` | Int    | 花费    |
+
+### `[IV]` item break
+
+物品损坏时。
+
+| 条件         | 解释器       | 判定   | 说明 |
+|------------|-----------|------|----|
+| `position` | Position  | 玩家位置 | 无  |
+| `item`     | ItemStack | 物品   | 无  |
+
+### `[IV]` item consume
+
+物品消耗时。
+
+| 条件                 | 解释器       | 判定   | 说明     |
+|--------------------|-----------|------|--------|
+| `position`         | Position  | 玩家位置 | 无      |
+| `item`             | ItemStack | 物品   | 无      |
+| `item:replacement` | ItemStack | 替换物品 | 特定版本有效 |
+
+### `[IV]` craft item
+
+合成物品时。
+
+| 条件            | 解释器       | 判定   | 说明 |
+|---------------|-----------|------|----|
+| `position`    | Position  | 玩家位置 | 无  |
+| `item`        | ItemStack | 物品   | 无  |
+| `item:matrix` | ItemStack | 消耗物品 | 无  |
+
+### `[IV]` drop item
+
+丢弃物品时。
+
+| 条件         | 解释器       | 判定   | 说明 |
+|------------|-----------|------|----|
+| `position` | Position  | 玩家位置 | 无  |
+| `item`     | ItemStack | 物品   | 无  |
+
+### `[IV]` enchant item
+
+附魔物品时。
+
+| 条件         | 解释器           | 判定    | 说明 |
+|------------|---------------|-------|----|
+| `position` | Position      | 附魔台位置 | 无  |
+| `item`     | ItemStack     | 物品    | 无  |
+| `type`     | String & List | 附魔类型  | 无  |
+| `cost`     | Int           | 花费    | 无  |
+
+| 条件变量   | 类型  | 说明 |
+|--------|-----|----|
+| `cost` | Int | 花费 |
+
+### `[IV]` furnace extract
+
+取出熔炉物品时。
+
+| 条件         | 解释器       | 判定   | 说明 |
+|------------|-----------|------|----|
+| `position` | Position  | 熔炉位置 | 无  |
+| `item`     | ItemStack | 物品   | 无  |
+| `exp`      | Int       | 经验   | 无  |
+
+| 条件变量  | 类型  | 说明 |
+|-------|-----|----|
+| `exp` | Int | 经验 |
+
+### `[IV]` item interact
+
+与物品交互时。
+
+| 条件         | 解释器           | 判定   | 说明 |
+|------------|---------------|------|----|
+| `position` | Position      | 玩家位置 | 无  |
+| `action`   | String & List | 交互动作 | 无  |
+| `hand`     | String & List | 手    | 无  |
+| `item`     | ItemStack     | 物品   | 无  |
+
+### `[IV]` item mend
+
+经验修补附魔修复物品时。
+
+| 条件         | 解释器       | 判定   | 说明 |
+|------------|-----------|------|----|
+| `position` | Position  | 玩家位置 | 无  |
+| `item`     | ItemStack | 物品   | 无  |
+| `amount`   | Int       | 修复量  | 无  |
+
+| 条件变量     | 类型  | 说明  |
+|----------|-----|-----|
+| `amount` | Int | 修复量 |
+
+### `[IV]` pickup item
+
+捡起物品时。
+
+| 条件         | 解释器       | 判定   | 说明 |
+|------------|-----------|------|----|
+| `position` | Position  | 玩家位置 | 无  |
+| `item`     | ItemStack | 物品   | 无  |
+| `amount`   | Int       | 数量   | 无  |
+
+| 条件变量     | 类型  | 说明  |
+|----------|-----|-----|
+| `amount` | Int | 数量  |
+
+### `[IV]` pickup arrow
+
+捡起箭矢时。
+
+| 条件         | 解释器       | 判定   | 说明 |
+|------------|-----------|------|----|
+| `position` | Position  | 玩家位置 | 无  |
+| `item`     | ItemStack | 物品   | 无  |
+| `amount`   | Int       | 数量   | 无  |
+
+| 条件变量     | 类型  | 说明  |
+|----------|-----|-----|
+| `amount` | Int | 数量  |
+
+### `[IV]` pickup exp
+
+捡起经验球时。
+
+| 条件         | 解释器           | 判定       | 说明                                                                                                                          |
+|------------|---------------|----------|-----------------------------------------------------------------------------------------------------------------------------|
+| `position` | Position      | 玩家位置     | 无                                                                                                                           |
+| `reason`   | String & List | 经验球产生的原因 | [SpawnReason](https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/event/entity/CreatureSpawnEvent.SpawnReason.html), 特定版本有效 |
+| `exp`      | Int           | 经验值      | 无                                                                                                                           |
+| `orb`      | Entity        | 经验球      | 无                                                                                                                           |
+
+| 条件变量  | 类型  | 说明  |
+|-------|-----|-----|
+| `exp` | Int | 经验值 |
+
+### `[IV]` player advancement
+
+获得成就时。
+
+| 条件            | 解释器           | 判定   | 说明 |
+|---------------|---------------|------|----|
+| `position`    | Position      | 玩家位置 | 无  |
+| `advancement` | String & List | -    | 无  |
+
+### `[FV]` player attack
+
+当玩家攻击时。
+
+| 条件             | 解释器           | 判定   | 说明                                                                                                                 |
+|----------------|---------------|------|--------------------------------------------------------------------------------------------------------------------|
+| `position`     | Position      | 玩家位置 | 无                                                                                                                  |
+| `victim`       | Entity        | 受害者  | 无                                                                                                                  |
+| `damage`       | Float         | 伤害   | 无                                                                                                                  |
+| `damage:final` | Float         | 最终伤害 | 无                                                                                                                  |
+| `cause`        | String & List | 伤害原因 | [DamageCause](https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/event/entity/EntityDamageEvent.DamageCause.html) |
+| `weapon`       | ItemStack     | 武器   | 无                                                                                                                  |
+
+| 条件变量           | 类型    | 说明   |
+|----------------|-------|------|
+| `damage`       | Float | 伤害   |
+| `damage:final` | Float | 最终伤害 |
+
+| 目标         | 解释器       | 判定   | 说明 |
+|------------|-----------|------|----|
+| `damage`   | Float     | 伤害   | 无  |
+
+| 目标变量     | 类型    | 说明 |
+|----------|-------|----|
+| `damage` | Float | 伤害 |
+
+### `[IV]` bed enter
+
+躺床上。
+
+| 条件         | 解释器           | 判定   | 说明                                                                                                                         |
+|------------|---------------|------|----------------------------------------------------------------------------------------------------------------------------|
+| `position` | Position      | 玩家位置 | 无                                                                                                                          |
+| `bed`      | Material      | 床    | 无                                                                                                                          |
+| `reason`   | String & List | 原因   | [BedEnterResult](https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/event/player/PlayerBedEnterEvent.BedEnterResult.html) |
+
+### `[IV]` bed leave
+
+离开床。
+
+| 条件         | 解释器           | 判定   | 说明 |
+|------------|---------------|------|----|
+| `position` | Position      | 玩家位置 | 无  |
+| `bed`      | Material      | 床    | 无  |
+
+### `[IV]` edit book
+
+编辑书时。
+
+| 条件         | 解释器      | 判定   | 说明 |
+|------------|----------|------|----|
+| `position` | Position | 玩家位置 | 无  |
+| `signing`  | Boolean  | 是否签名 | 无  |
+| `page`     | Int      | 页数   | 无  |
+| `title`    | String   | 标题   | 无  |
+| `content`  | String   | 内容   | 无  |
+
+| 条件变量      | 类型     | 说明 |
+|-----------|--------|----|
+| `page`    | Int    | 页数 |
+| `title`   | String | 标题 |
+| `content` | String | 内容 |
+
+### `[IV]` entity breed
+
+动物繁殖时。
+
+| 条件              | 解释器       | 判定     | 说明 |
+|-----------------|-----------|--------|----|
+| `position`      | Position  | 实体位置   | 无  |
+| `entity`        | Entity    | 实体     | 无  |
+| `entity:father` | Entity    | 父亲     | 无  |
+| `entity:mother` | Entity    | 母亲     | 无  |
+| `item`          | ItemStack | 繁殖用的物品 | 无  |
+| `exp`           | Int       | 经验     | 无  |
+
+| 条件变量  | 类型  | 说明 |
+|-------|-----|----|
+| `exp` | Int | 经验 |
+
+### `[IV]` bucket empty
+
+倒空桶时。
+
+| 条件                 | 解释器           | 判定   | 说明     |
+|--------------------|---------------|------|--------|
+| `position`         | Position      | 玩家位置 | 无      |
+| `item`             | ItemStack     | 物品   | 无      |
+| `item:bucket`      | ItemStack     | 桶    | 无      |
+| `material`         | Material      | -    | 无      |
+| `material:clicked` | Material      | -    | 无      |
+| `face`             | String & List | 方块朝向 | 无      |
+| `hand`             | String & List | 手    | 特定版本有效 |
+
+### `[IV]` bucket fill
+
+装满桶时。
+
+| 条件                 | 解释器           | 判定   | 说明     |
+|--------------------|---------------|------|--------|
+| `position`         | Position      | 玩家位置 | 无      |
+| `item`             | ItemStack     | 物品   | 无      |
+| `item:bucket`      | ItemStack     | 桶    | 无      |
+| `material`         | Material      | -    | 无      |
+| `material:clicked` | Material      | -    | 无      |
+| `face`             | String & List | 方块朝向 | 无      |
+| `hand`             | String & List | 手    | 特定版本有效 |
+
+### `[IV]` change world
+
+切换世界时。
+
+| 条件           | 解释器           | 判定   | 说明 |
+|--------------|---------------|------|----|
+| `position`   | Position      | 玩家位置 | 无  |
+| `world`      | String & List | 世界   | 无  |
+| `world:to`   | String & List | 目标世界 | 无  |
+| `world:from` | String & List | 原世界  | 无  |
+
+### `[IV]` player chat
+
+聊天时。
+
+| 条件         | 解释器       | 判定   | 说明 |
+|------------|-----------|------|----|
+| `position` | Position  | 玩家位置 | 无  |
+| `message`  | String    | 消息   | 无  |
+
+| 条件变量      | 类型     | 说明 |
+|-----------|--------|----|
+| `message` | String | 消息 |
+
+### `[IV]` player command
+
+执行命令时。
+
+| 条件         | 解释器       | 判定   | 说明 |
+|------------|-----------|------|----|
+| `position` | Position  | 玩家位置 | 无  |
+| `command`  | String    | 命令   | 无  |
+
+| 条件变量      | 类型     | 说明 |
+|-----------|--------|----|
+| `command` | String | 命令 |
+
+### `[FV]` player damage
+
+受到伤害时。
+
+| 条件             | 解释器           | 判定   | 说明                                                                                                                 |
+|----------------|---------------|------|--------------------------------------------------------------------------------------------------------------------|
+| `position`     | Position      | 玩家位置 | 无                                                                                                                  |
+| `victim`       | Entity        | 受害者  | 无                                                                                                                  |
+| `damage`       | Float         | 伤害   | 无                                                                                                                  |
+| `damage:final` | Float         | 最终伤害 | 无                                                                                                                  |
+| `cause`        | String & List | 伤害原因 | [DamageCause](https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/event/entity/EntityDamageEvent.DamageCause.html) |
+
+| 条件变量           | 类型    | 说明   |
+|----------------|-------|------|
+| `damage`       | Float | 伤害   |
+| `damage:final` | Float | 最终伤害 |
+
+| 目标         | 解释器       | 判定   | 说明 |
+|------------|-----------|------|----|
+| `damage`   | Float     | 伤害   | 无  |
+
+| 目标变量     | 类型    | 说明 |
+|----------|-------|----|
+| `damage` | Float | 伤害 |
+
+### `[FV]` player damage by block
+
+受到方块伤害时。
+
+| 条件             | 解释器           | 判定   | 说明                                                                                                                 |
+|----------------|---------------|------|--------------------------------------------------------------------------------------------------------------------|
+| `position`     | Position      | 玩家位置 | 无                                                                                                                  |
+| `victim`       | Entity        | 受害者  | 无                                                                                                                  |
+| `damage`       | Float         | 伤害   | 无                                                                                                                  |
+| `damage:final` | Float         | 最终伤害 | 无                                                                                                                  |
+| `cause`        | String & List | 伤害原因 | [DamageCause](https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/event/entity/EntityDamageEvent.DamageCause.html) |
+| `block`        | Material      | 方块   | 无                                                                                                                  |
+
+| 条件变量           | 类型    | 说明   |
+|----------------|-------|------|
+| `damage`       | Float | 伤害   |
+| `damage:final` | Float | 最终伤害 |
+
+| 目标         | 解释器       | 判定   | 说明 |
+|------------|-----------|------|----|
+| `damage`   | Float     | 伤害   | 无  |
+
+| 目标变量     | 类型    | 说明 |
+|----------|-------|----|
+| `damage` | Float | 伤害 |
+
+### `[FV]` player damage by entity
+
+受到实体伤害时。
+
+| 条件             | 解释器           | 判定   | 说明                                                                                                                 |
+|----------------|---------------|------|--------------------------------------------------------------------------------------------------------------------|
+| `position`     | Position      | 玩家位置 | 无                                                                                                                  |
+| `victim`       | Entity        | 受害者  | 无                                                                                                                  |
+| `damage`       | Float         | 伤害   | 无                                                                                                                  |
+| `damage:final` | Float         | 最终伤害 | 无                                                                                                                  |
+| `cause`        | String & List | 伤害原因 | [DamageCause](https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/event/entity/EntityDamageEvent.DamageCause.html) |
+| `attacker`     | Entity        | 攻击者  | 无                                                                                                                  |
+| `weapon`       | ItemStack     | 武器   | 无                                                                                                                  |
+
+| 条件变量           | 类型    | 说明   |
+|----------------|-------|------|
+| `damage`       | Float | 伤害   |
+| `damage:final` | Float | 最终伤害 |
+
+| 目标         | 解释器       | 判定   | 说明 |
+|------------|-----------|------|----|
+| `damage`   | Float     | 伤害   | 无  |
+
+| 目标变量     | 类型    | 说明 |
+|----------|-------|----|
+| `damage` | Float | 伤害 |
+
+### `[IV]` player death
+
+死亡时。
+
+| 条件              | 解释器           | 判定       | 说明                                                                                                                 |
+|-----------------|---------------|----------|--------------------------------------------------------------------------------------------------------------------|
+| `position`      | Position      | 玩家位置     | 无                                                                                                                  |
+| `damage`        | Float         | 伤害       | 无                                                                                                                  |
+| `damage:final`  | Float         | 最终伤害     | 无                                                                                                                  |
+| `cause`         | String & List | 伤害原因     | [DamageCause](https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/event/entity/EntityDamageEvent.DamageCause.html) |
+| `drops`         | ItemStack     | 掉落物品     | 无                                                                                                                  |
+| `exp`           | Int           | 掉落经验     | 无                                                                                                                  |
+| `revive-health` | Float         | 复活血量     | 特定版本可用                                                                                                             |
+| `weapon`        | ItemStack     | 攻击者使用的武器 | 无                                                                                                                  |
+| `attacker`      | Entity        | 攻击者      | 无                                                                                                                  |
+| `message`       | String        | 死亡信息     | 无                                                                                                                  |
+
+| 条件变量            | 类型     | 说明           |
+|-----------------|--------|--------------|
+| `damage`        | Float  | 伤害           |
+| `damage:final`  | Float  | 最终伤害         |
+| `exp`           | Int    | 掉落经验         |
+| `revive-health` | Float  | 复活血量（特定版本可用） |
+| `message`       | String | 死亡信息         |
+
+### `[IV]` entity dismount
+
+玩家离开坐骑时。
+
+| 条件         | 解释器       | 判定   | 说明 |
+|------------|-----------|------|----|
+| `position` | Position  | 玩家位置 | 无  |
+| `entity`   | Entity    | 坐骑   | 无  |
+
+### `[IV]` exp change
+
+经验值变化时。
+
+| 条件         | 解释器      | 判定   | 说明     |
+|------------|----------|------|--------|
+| `position` | Position | 玩家位置 | 无      |
+| `amount`   | Int      | 变化量  | 无      |
+| `entity`   | Entity   | 经验来源 | 特定版本可用 |
+
+| 条件变量     | 类型  | 说明  |
+|----------|-----|-----|
+| `amount` | Int | 变化量 |
+
+### `[IV]` player fish
+
+钓鱼时。
+
+| 条件            | 解释器           | 判定   | 说明                                                                                                   |
+|---------------|---------------|------|------------------------------------------------------------------------------------------------------|
+| `position`    | Position      | 玩家位置 | 无                                                                                                    |
+| `entity`      | Entity        | 鱼    | 无                                                                                                    |
+| `entity:hook` | Entity        | 钩子   | 无                                                                                                    |
+| `item`        | ItemStack     | 物品   | 无                                                                                                    |
+| `state`       | String & List | 状态   | 无                                                                                                    |
+| `exp`         | Int           | 经验   | [State](https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/event/player/PlayerFishEvent.State.html) |
+
+| 条件变量     | 类型  | 说明  |
+|----------|-----|-----|
+| `exp`    | Int | 经验  |
+
+### `[IV]` food change
+
+饥饿值变化时。
+
+| 条件         | 解释器       | 判定    | 说明 |
+|------------|-----------|-------|----|
+| `position` | Position  | 玩家位置  | 无  |
+| `amount`   | Int       | 新的饥饿值 | 无  |
+| `item`     | ItemStack | 食物    | 无  |
+
+| 条件变量     | 类型  | 说明    |
+|----------|-----|-------|
+| `amount` | Int | 新的饥饿值 |
+
+### `[IV]` item held
+
+手持物品变化时。
+
+| 条件              | 解释器       | 判定    | 说明 |
+|-----------------|-----------|-------|----|
+| `position`      | Position  | 玩家位置  | 无  |
+| `slot:new`      | Int       | 新的槽   | 无  |
+| `slot:previous` | Int       | 之前的槽  | 无  |
+| `item:new`      | ItemStack | 新的物品  | 无  |
+| `item:previous` | ItemStack | 之前的物品 | 无  |
+
+### `[IV]` player jump
+
+跳跃时。伪造的事件，可能不准。
+
+| 条件         | 解释器       | 判定   | 说明 |
+|------------|-----------|------|----|
+| `position` | Position  | 玩家位置 | 无  |
+
+### `[IV]` horse jump
+
+骑马跳跃时。
+
+| 条件         | 解释器      | 判定   | 说明 |
+|------------|----------|------|----|
+| `position` | Position | 玩家位置 | 无  |
+| `entity`   | Entity   | 马    | 无  |
+| `power`    | Float    | 跳跃力  | 无  |
+
+| 条件变量    | 类型    | 说明  |
+|---------|-------|-----|
+| `power` | Float | 跳跃力 |
+
+### `[FV]` player kill
+
+击杀实体时。
+
+| 条件              | 解释器           | 判定       | 说明                                                                                                                 |
+|-----------------|---------------|----------|--------------------------------------------------------------------------------------------------------------------|
+| `position`      | Position      | 玩家位置     | 无                                                                                                                  |
+| `damage`        | Float         | 伤害       | 无                                                                                                                  |
+| `damage:final`  | Float         | 最终伤害     | 无                                                                                                                  |
+| `cause`         | String & List | 伤害原因     | [DamageCause](https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/event/entity/EntityDamageEvent.DamageCause.html) |
+| `drops`         | ItemStack     | 掉落物品     | 无                                                                                                                  |
+| `exp`           | Int           | 掉落经验     | 无                                                                                                                  |
+| `revive-health` | Float         | 复活血量     | 特定版本可用                                                                                                             |
+| `weapon`        | ItemStack     | 攻击者使用的武器 | 无                                                                                                                  |
+| `victim`        | Entity        | 受害者      | 无                                                                                                                  |
+
+| 条件变量            | 类型     | 说明           |
+|-----------------|--------|--------------|
+| `damage`        | Float  | 伤害           |
+| `damage:final`  | Float  | 最终伤害         |
+| `exp`           | Int    | 掉落经验         |
+| `revive-health` | Float  | 复活血量（特定版本可用） |
+
+### `[IV]` level change
+
+等级变化时。
+
+| 条件          | 解释器      | 判定   | 说明 |
+|-------------|----------|------|----|
+| `position`  | Position | 玩家位置 | 无  |
+| `level`     | Int      | 变化等级 | 无  |
+| `level:new` | Int      | 新的等级 | 无  |
+| `level:old` | Int      | 旧的等级 | 无  |
+
+| 条件变量        | 类型  | 说明   |
+|-------------|-----|------|
+| `level`     | Int | 变化等级 |
+| `level:new` | Int | 新的等级 |
+| `level:old` | Int | 旧的等级 |
+
+### `[IV]` entity mount
+
+玩家骑上坐骑时。
+
+| 条件         | 解释器       | 判定   | 说明 |
+|------------|-----------|------|----|
+| `position` | Position  | 玩家位置 | 无  |
+| `entity`   | Entity    | 坐骑   | 无  |
+
+### `[IV]` player move
+
+移动时。
+
+| 条件              | 解释器      | 判定   | 说明 |
+|-----------------|----------|------|----|
+| `position`      | Position | 玩家位置 | 无  |
+| `position:to`   | Position | 目标位置 | 无  |
+| `position:from` | Position | 原位置  | 无  |
+
+### `[IV]` portal enter
+
+进入传送门时。
+
+| 条件         | 解释器      | 判定   | 说明 |
+|------------|----------|------|----|
+| `position` | Position | 玩家位置 | 无  |
+
+### `[IV]` portal exit
+
+离开传送门时。
+
+| 条件              | 解释器      | 判定   | 说明 |
+|-----------------|----------|------|----|
+| `position`      | Position | 目标位置 | 无  |
+| `position:to`   | Position | 目标位置 | 无  |
+| `position:from` | Position | 原位置  | 无  |
+
+### `[IV]` pressure plate
+
+踩压力板时。
+
+| 条件         | 解释器      | 判定   | 说明 |
+|------------|----------|------|----|
+| `position` | Position | 玩家位置 | 无  |
+| `material` | Material | 压力板  | 无  |
+
+### `[IV]` player real move
+
+真正移动时，指玩家位置发生实质性的变化。
+
+| 条件              | 解释器      | 判定   | 说明 |
+|-----------------|----------|------|----|
+| `position`      | Position | 目标位置 | 无  |
+| `position:to`   | Position | 目标位置 | 无  |
+| `position:from` | Position | 原位置  | 无  |
+
+### `[IV]` recipe discover
+
+发现合成配方时。
+
+| 条件         | 解释器           | 判定   | 说明 |
+|------------|---------------|------|----|
+| `position` | Position      | 玩家位置 | 无  |
+| `recipe`   | String & List | 配方   | 无  |
+
+### `[IV]` health regain
+
+回复生命值时。
+
+| 条件         | 解释器      | 判定     | 说明                                                                                                                         |
+|------------|----------|--------|----------------------------------------------------------------------------------------------------------------------------|
+| `position` | Position | 玩家位置   | 无                                                                                                                          |
+| `amount`   | Float    | 回复量    | 无                                                                                                                          |
+| `reason`   | String   | 回复原因   | [RegainReason](https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/event/entity/EntityRegainHealthEvent.RegainReason.html) |
+| `fast`     | Boolean  | 是否快速回复 | 特定版本可用                                                                                                                     |
+
+| 条件变量     | 类型    | 说明  |
+|----------|-------|-----|
+| `amount` | Float | 回复量 |
+
+### `[IV]` player respawn
+
+复活时。
+
+| 条件             | 解释器      | 判定    | 说明     |
+|----------------|----------|-------|--------|
+| `position`     | Position | 玩家位置  | 无      |
+| `spawn:bed`    | Boolean  | 是否床复活 | 无      |
+| `spawn:anchor` | Boolean  | 是否锚复活 | 特定版本可用 |
+
+### `[IV]` player resurrect
+
+使用图腾复活时。
+
+| 条件         | 解释器       | 判定   | 说明 |
+|------------|-----------|------|----|
+| `position` | Position  | 玩家位置 | 无  |
+| `item`     | ItemStack | 物品   | 无  |
+
+### `[IV]` player riptide
+
+使用激流附魔时。
+
+| 条件         | 解释器       | 判定   | 说明 |
+|------------|-----------|------|----|
+| `position` | Position  | 玩家位置 | 无  |
+| `item`     | ItemStack | 物品   | 无  |
+
+### `[IV]` player shear
+
+剪羊毛时。
+
+| 条件         | 解释器           | 判定   | 说明 |
+|------------|---------------|------|----|
+| `position` | Position      | 玩家位置 | 无  |
+| `entity`   | Entity        | 实体   | 无  |
+| `item`     | ItemStack     | 物品   | 无  |
+| `hand`     | String & List | 手    | 无  |
+
+### `[IV]` shoot bow
+
+射箭时。
+
+| 条件              | 解释器           | 判定   | 说明 |
+|-----------------|---------------|------|----|
+| `position`      | Position      | 玩家位置 | 无  |
+| `arrow`         | Entity        | 箭    | 无  |
+| `item`          | ItemStack     | 弓    | 无  |
+| `item:consumed` | ItemStack     | 消耗物品 | 无  |
+| `hand`          | String & List | 手    | 无  |
+| `force`         | Float         | 力度   | 无  |
+| `consumable`    | Boolean       | 是否消耗 | 无  |
+
+| 条件变量         | 类型      | 说明   |
+|--------------|---------|------|
+| `force`      | Float   | 力度   |
+| `consumable` | Boolean | 是否消耗 |
+
+### `[IV]` player statistic
+
+统计数据变化时。
+
+| 条件               | 解释器           | 判定   | 说明 |
+|------------------|---------------|------|----|
+| `position`       | Position      | 玩家位置 | 无  |
+| `statistic`      | String & List | 统计数据 | 无  |
+| `type:entity`    | String & List | 实体类型 | 无  |
+| `type:material`  | String & List | 方块类型 | 无  |
+| `value`          | Int           | 新的值  | 无  |
+| `value:new`      | Int           | 新的值  | 无  |
+| `value:previous` | Int           | 旧的值  | 无  |
+
+| 条件变量             | 类型  | 说明  |
+|------------------|-----|-----|
+| `value`          | Int | 新的值 |
+| `value:new`      | Int | 新的值 |
+| `value:previous` | Int | 旧的值 |
+
+### `[IV]` player teleport
+
+传送时。
+
+| 条件              | 解释器      | 判定   | 说明                                                                                                                       |
+|-----------------|----------|------|--------------------------------------------------------------------------------------------------------------------------|
+| `position`      | Position | 目标位置 | 无                                                                                                                        |
+| `position:to`   | Position | 目标位置 | 无                                                                                                                        |
+| `position:from` | Position | 原位置  | 无                                                                                                                        |
+| `cause`         | String   | 传送原因 | [TeleportCause](https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/event/player/PlayerTeleportEvent.TeleportCause.html) |
+
+### `[IV]` player toggle flight
+
+切换飞行时。
+
+| 条件         | 解释器      | 判定   | 说明 |
+|------------|----------|------|----|
+| `position` | Position | 玩家位置 | 无  |
+| `flying`   | Boolean  | 是否飞行 | 无  |
+
+### `[IV]` player swap hand
+
+切换主副手时。
+
+| 条件             | 解释器       | 判定   | 说明 |
+|----------------|-----------|------|----|
+| `position`     | Position  | 玩家位置 | 无  |
+| `item:main`    | ItemStack | 主手物品 | 无  |
+| `item:offhand` | ItemStack | 副手物品 | 无  |
+
+### `[ID]` chatreaction win
+
+`ReactionWinEvent`
+
+| 条件         | 解释器       | 判定   | 说明 |
+|------------|-----------|------|----|
+| `position` | Position  | 玩家位置 | 无  |
+
+### `[ID]` cnpc damage
+
+攻击 Citizen NPC 时。
+
+| 条件         | 解释器           | 判定     | 说明 |
+|------------|---------------|--------|----|
+| `position` | Position      | 玩家位置   | 无  |
+| `name`     | String & List | NPC 名称 | 无  |
+| `id`       | Int           | NPC ID | 无  |
+| `type`     | String & List | NPC 类型 | 无  |
+| `damage`   | Float         | 伤害     | 无  |
+
+| 条件变量     | 类型     | 说明     |
+|----------|--------|--------|
+| `name`   | String | NPC 名称 |
+| `damage` | Float  | 伤害     |
+| `id`     | Int    | NPC ID |
+
+### `[ID]` cnpc interact
+
+攻击 Citizen NPC 时。
+
+| 条件         | 解释器           | 判定     | 说明 |
+|------------|---------------|--------|----|
+| `position` | Position      | 玩家位置   | 无  |
+| `name`     | String & List | NPC 名称 | 无  |
+| `id`       | Int           | NPC ID | 无  |
+| `type`     | String & List | NPC 类型 | 无  |
+
+| 条件变量     | 类型     | 说明     |
+|----------|--------|--------|
+| `name`   | String | NPC 名称 |
+| `id`     | Int    | NPC ID |
+
+### `[ID]` cc open
+
+当玩家打开 CrazyCrates 箱子时。
+
+| 条件         | 解释器           | 判定   | 说明 |
+|------------|---------------|------|----|
+| `position` | Position      | 玩家位置 | 无  |
+| `crate`    | String & List | 箱子   | 无  |
+
+| 条件变量     | 类型     | 说明 |
+|----------|--------|----|
+| `crate`  | String | 箱子 |
+
+### `[ID]` lands claim
+
+当玩家领取 Lands 的领地时。
+
+| 条件         | 解释器           | 判定   | 说明 |
+|------------|---------------|------|----|
+| `position` | Position      | 玩家位置 | 无  |
+
+### `[ID]` lands create
+
+当玩家创建 Lands 的领地时。
+
+| 条件         | 解释器           | 判定   | 说明 |
+|------------|---------------|------|----|
+| `position` | Position      | 玩家位置 | 无  |
+
+### `[ID]` lands disband
+
+当玩家解散 Lands 的领地时。
+
+| 条件         | 解释器           | 判定   | 说明 |
+|------------|---------------|------|----|
+| `position` | Position      | 玩家位置 | 无  |
+
+### `[ID]` lands invite
+
+当玩家邀请他人加入 Lands 的领地时。
+
+| 条件         | 解释器           | 判定   | 说明 |
+|------------|---------------|------|----|
+| `position` | Position      | 玩家位置 | 无  |
+
+### `[ID]` lands join
+
+当玩家加入 Lands 的领地时。
+
+| 条件         | 解释器           | 判定   | 说明 |
+|------------|---------------|------|----|
+| `position` | Position      | 玩家位置 | 无  |
+
+### `[ID]` lands leave
+
+当玩家离开 Lands 的领地时。
+
+| 条件         | 解释器           | 判定   | 说明 |
+|------------|---------------|------|----|
+| `position` | Position      | 玩家位置 | 无  |
+
+### `[ID]` marriage gift
+
+当玩家通过 MarriageMaster 赠送礼物时。
+
+| 条件         | 解释器       | 判定   | 说明 |
+|------------|-----------|------|----|
+| `position` | Position  | 玩家位置 | 无  |
+| `item`     | ItemStack | 物品   | 无  |
+
+### `[ID]` marriage hug
+
+当玩家通过 MarriageMaster 拥抱时。
+
+| 条件         | 解释器       | 判定   | 说明 |
+|------------|-----------|------|----|
+| `position` | Position  | 玩家位置 | 无  |
+
+### `[ID]` marriage kiss
+
+当玩家通过 MarriageMaster 亲吻时。
+
+| 条件         | 解释器       | 判定   | 说明 |
+|------------|-----------|------|----|
+| `position` | Position  | 玩家位置 | 无  |
+
+### `[ID]` marriage marry
+
+当玩家通过 MarriageMaster 结婚时。
+
+| 条件         | 解释器       | 判定   | 说明 |
+|------------|-----------|------|----|
+| `position` | Position  | 玩家位置 | 无  |
+
+### `[ID]` mythicmobs kill
+
+当玩家击杀 MythicMobs 怪物时。
+
+| 条件         | 解释器           | 判定    | 说明 |
+|------------|---------------|-------|----|
+| `position` | Position      | 玩家位置  | 无  |
+| `name`     | String & List | 怪物 Id | 无  |
+| `level`    | Int           | 怪物等级  | 无  |
+
+| 条件变量     | 类型     | 说明    |
+|----------|--------|-------|
+| `name`   | String | 怪物 Id |
+| `level`  | Int    | 怪物等级  |
+
+### `[IC]` always
+
+自动触发。
+
+| 条件         | 解释器      | 判定   | 说明 |
+|------------|----------|------|----|
+| `position` | Position | 玩家位置 | 无  |
+
+### `[IC]` custom level
+
+当玩家的 Chemdah 等级变化时。
+
+| 条件         | 解释器      | 判定   | 说明 |
+|------------|----------|------|----|
+| `position` | Position | 玩家位置 | 无  |
+
+| 目标      | 解释器    | 判定    | 说明 |
+|---------|--------|-------|----|
+| `id`    | String | 等级 ID | 无  |
+| `level` | Int    | 新的等级  | 无  |
+
+| 目标变量    | 类型  | 说明   |
+|---------|-----|------|
+| `level` | Int | 新的等级 |
+
+### `[IC]` player data
+
+当玩家的 Chemdah 数据变化时。
+
+| 条件         | 解释器      | 判定   | 说明 |
+|------------|----------|------|----|
+| `position` | Position | 玩家位置 | 无  |
+
+| 目标      | 解释器    | 判定  | 说明 |
+|---------|--------|-----|----|
+| `key`   | String | 键   | 无  |
+| `value` | Object | 新的值 | 无  |
+
+### `[IC]` player inventory
+
+当玩家持有物品时。
+
+| 条件         | 解释器       | 判定   | 说明        |
+|------------|-----------|------|-----------|
+| `position` | Position  | 玩家位置 | 无         |
+| `item`     | ItemStack | 物品   | 无         |
+| `amount`   | Int       | 数量   | 无         |
+| `consume`  | Boolean   | -    | 启用后，将消耗物品 |
+
+### `[IC]` player permission
+
+当玩家持有权限时。
+
+| 条件           | 解释器      | 判定   | 说明 |
+|--------------|----------|------|----|
+| `position`   | Position | 玩家位置 | 无  |
+| `permission` | String   | 权限   | 无  |
+
+### `[IC]` quest data
+
+当玩家的 Chemdah 任务数据变化时。
+
+| 条件         | 解释器      | 判定   | 说明 |
+|------------|----------|------|----|
+| `position` | Position | 玩家位置 | 无  |
+
+| 目标      | 解释器    | 判定    | 说明 |
+|---------|--------|-------|----|
+| `quest` | String | 任务 ID | 无  |
+| `key`   | String | 键     | 无  |
+| `value` | Object | 新的值   | 无  |
+
+### `[IC]` trigger
+
+主动触发。
+
+| 条件         | 解释器      | 判定   | 说明 |
+|------------|----------|------|----|
+| `position` | Position | 玩家位置 | 无  |
+| `trigger`  | String   | 触发器  | 无  |
+
+### `[IC]` player conversation refused
+
+当玩家放弃对话时。
+
+| 条件         | 解释器           | 判定    | 说明 |
+|------------|---------------|-------|----|
+| `position` | Position      | 玩家位置  | 无  |
+| `id`       | String & List | 对话 ID | 无  |
+
+| 目标      | 解释器    | 判定    | 说明 |
+|---------|--------|-------|----|
+| `id`    | String | 对话 ID | 无  |
+
+### `[IC]` player conversation
+
+当玩家通过正常途径结束对话时。
+
+| 条件         | 解释器           | 判定    | 说明 |
+|------------|---------------|-------|----|
+| `position` | Position      | 玩家位置  | 无  |
+| `id`       | String & List | 对话 ID | 无  |
+
+| 目标      | 解释器    | 判定    | 说明 |
+|---------|--------|-------|----|
+| `id`    | String | 对话 ID | 无  |
+
+### `[ID]` placeholder api
+
+定期检查玩家的 PlaceholderAPI 变量。
+
+| 条件         | 解释器      | 判定   | 说明 |
+|------------|----------|------|----|
+| `position` | Position | 玩家位置 | 无  |
+
+| 目标      | 解释器    | 判定  | 说明               |
+|---------|--------|-----|------------------|
+| `key`   | String | 变量  | `%player_level%` |
+| `value` | Object | 新的值 | 无                |
+
+### `[ID]` quickshop create
+
+当玩家创建 QuickShop 商店时。
+
+| 条件          | 解释器       | 判定   | 说明 |
+|-------------|-----------|------|----|
+| `position`  | Position  | 玩家位置 | 无  |
+| `item`      | ItemStack | 物品   | 无  |
+| `type:buy`  | Boolean   | 是否购买 | 无  |
+| `type:sell` | Boolean   | 是否出售 | 无  |
+
+### `[ID]` quickshop delete
+
+当玩家删除 QuickShop 商店时。
+
+| 条件          | 解释器       | 判定   | 说明 |
+|-------------|-----------|------|----|
+| `position`  | Position  | 玩家位置 | 无  |
+| `item`      | ItemStack | 物品   | 无  |
+| `type:buy`  | Boolean   | 是否购买 | 无  |
+| `type:sell` | Boolean   | 是否出售 | 无  |
+
+### `[ID]` quickshop purchase
+
+当玩家购买 QuickShop 商品时。
+
+| 条件         | 解释器       | 判定   | 说明 |
+|------------|-----------|------|----|
+| `position` | Position  | 玩家位置 | 无  |
+| `item`     | ItemStack | 物品   | 无  |
+| `amount`   | Int       | 数量   | 无  |
+| `total`    | Float     | 总价   | 无  |
+
+| 条件变量     | 类型    | 说明  |
+|----------|-------|-----|
+| `amount` | Int   | 数量  |
+| `total`  | Float | 总价  |
+
+### `[ID]` skillapi castskill
+
+当玩家使用 SkillAPI 技能时。
+
+| 条件         | 解释器           | 判定   | 说明 |
+|------------|---------------|------|----|
+| `position` | Position      | 玩家位置 | 无  |
+| `skill`    | String & List | 技能   | 无  |
+| `mana`     | Float         | 消耗   | 无  |
+
+| 条件变量     | 类型    | 说明  |
+|----------|-------|-----|
+| `mana`   | Float | 消耗  |
+
+### `[ID]` skillapi class change
+
+当玩家切换 SkillAPI 职业时。
+
+| 条件         | 解释器           | 判定   | 说明 |
+|------------|---------------|------|----|
+| `position` | Position      | 玩家位置 | 无  |
+| `class`    | String & List | 职业   | 无  |
+
+| 条件变量    | 类型     | 说明 |
+|---------|--------|----|
+| `class` | String | 职业 |
+
+### `[ID]` skillapi combo
+
+当玩家使用 SkillAPI 连招时。
+
+| 条件         | 解释器           | 判定   | 说明 |
+|------------|---------------|------|----|
+| `position` | Position      | 玩家位置 | 无  |
+| `skill`    | String & List | 技能   | 无  |
+| `combo`    | Int           | 连招   | 无  |
+
+| 条件变量     | 类型    | 说明  |
+|----------|-------|-----|
+| `combo`  | Int   | 连招  |
+
+### `[ID]` skillapi levelup
+
+当玩家 SkillAPI 等级提升时。
+
+| 条件         | 解释器      | 判定   | 说明 |
+|------------|----------|------|----|
+| `position` | Position | 玩家位置 | 无  |
+| `level`    | Int      | 新的等级 | 无  |
+
+| 条件变量    | 类型  | 说明   |
+|---------|-----|------|
+| `level` | Int | 新的等级 |
+
+### `[ID]` skillapi skill damage
+
+当玩家造成 SkillAPI 技能伤害时。
+
+| 条件         | 解释器           | 判定   | 说明 |
+|------------|---------------|------|----|
+| `position` | Position      | 玩家位置 | 无  |
+| `skill`    | String & List | 技能   | 无  |
+| `target`   | Entity        | 目标   | 无  |
+| `damage`   | Float         | 伤害   | 无  |
+
+| 条件变量     | 类型    | 说明  |
+|----------|-------|-----|
+| `damage` | Float | 伤害  |
+
+### `[ID]` skillapi skill downgrade
+
+当玩家降级 SkillAPI 技能时。
+
+| 条件         | 解释器           | 判定   | 说明 |
+|------------|---------------|------|----|
+| `position` | Position      | 玩家位置 | 无  |
+| `skill`    | String & List | 技能   | 无  |
+| `refund`   | Float         | -    | 无  |
+
+| 条件变量     | 类型     | 说明 |
+|----------|--------|----|
+| `skill`  | String | 技能 |
+| `refund` | Float  | -  |
+
+### `[ID]` skillapi skillunlock
+
+当玩家解锁 SkillAPI 技能时。
+
+| 条件         | 解释器           | 判定   | 说明 |
+|------------|---------------|------|----|
+| `position` | Position      | 玩家位置 | 无  |
+| `skill`    | String & List | 技能   | 无  |
+
+| 条件变量     | 类型     | 说明 |
+|----------|--------|----|
+| `skill`  | String | 技能 |
+
+### `[ID]` skillapi skill upgrade
+
+当玩家升级 SkillAPI 技能时。
+
+| 条件         | 解释器           | 判定   | 说明 |
+|------------|---------------|------|----|
+| `position` | Position      | 玩家位置 | 无  |
+| `skill`    | String & List | 技能   | 无  |
+
+| 条件变量     | 类型     | 说明 |
+|----------|--------|----|
+| `skill`  | String | 技能 |
+
+### `[ID]` skillapi up attribute
+
+当玩家升级 SkillAPI 属性时。
+
+| 条件         | 解释器           | 判定   | 说明 |
+|------------|---------------|------|----|
+| `position` | Position      | 玩家位置 | 无  |
+| `attrbute` | String & List | 属性   | 无  |
+
+| 条件变量       | 类型     | 说明 |
+|------------|--------|----|
+| `attrbute` | String | 属性 |
+
+### `[ID]` votifier vote
+
+当玩家参与 Votifier 投票时。
+
+| 条件         | 解释器       | 判定   | 说明 |
+|------------|-----------|------|----|
+| `position` | Position  | 玩家位置 | 无  |

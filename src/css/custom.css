@@ -113,3 +113,11 @@ code {
     padding-left: 5px;
     padding-right: 5px;
 }
+
+table {
+    width: 100%;
+}
+
+td {
+    min-width: 150px;
+}

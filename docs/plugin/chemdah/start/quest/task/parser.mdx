@@ -3,3 +3,87 @@ sidebar_position: 3
 ---
 
 # 解释器
+
+解释器就是 **<span style={{color: "#78CE52"}}>绿色箭头</span>** 指向的地方，用于判断事件输入。
+
+<img id="game_img" src="/img/Xnip2024-03-01_12-40-15.png" width="600" style={{marginBottom: "1rem"}}/>
+
+上面这个配置指的就是用 `world 0 0 0 ~ 10` 去判断单位的坐标。
+
+## 基本类型
+
+例如 `Int`, `Float`, `Double`, `String`, `Boolean` 这种简单的类型。
+
+```yaml title="攻击任务"
+damage_quest:
+  task:
+    objective: player attack
+    condition:
+      damage: 10
+```
+
+含义为 `玩家造成的伤害` `>=` `10` 时, 此条件成立。
+
+### 数字
+
+在数字前面加上符号来定义判断规则，例如 `>`, `<`, `>=`, `<=`, `=`。
+
+```yaml
+# 当 玩家造成的伤害 为 15 时。
+damage: =15
+```
+
+也可以使用 `..` 来定义一个范围：
+
+```yaml
+# 当 玩家造成的伤害 在 10 ~ 15 之间时
+damage: 10..15
+```
+
+### 字符串
+
+除 `command` 类型采用 `前缀` 规则外，其余 `String` 均使用 `包含` 规则。
+
+## String & List
+
+这个类型是 `String` 的一种特殊形式，采用 `完全匹配` 规则，但支持多个值。
+
+```yaml
+npc_quest:
+  task:
+    objective: anpc interact
+    condition:
+      type: [ZOMBIE, SKELETON]
+```
+
+```yaml
+npc_quest:
+  task:
+    objective: anpc interact
+    condition:
+      type:
+      - ZOMBIE
+      - SKELETON
+```
+
+当 `NPC 类型` 是 `ZOMBIE` 或 `SKELETON` 时，此条件成立。
+
+## Position
+
+用于匹配坐标。
+
+## Vector
+
+是 `Position` 的一种特殊形式，没有世界参数。
+
+## Entity
+
+用于匹配实体。
+
+## Material
+
+用于匹配材质。
+
+## ItemStack
+
+用于匹配物品。

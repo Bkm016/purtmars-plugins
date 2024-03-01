@@ -20,6 +20,6 @@ Chemdah 可能不支持 Forge, Folia 等**特殊**服务端。
 
 ## 体验
 
-在交流群中您可以下载免费版，包含了所有功能，但会在加入游戏时提示您购买。
+在交流群中您可以下载免费版，除无法使用 MySQL 数据库外，与付费版无异。
 
 > 加入 [Chemdah 交流群](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=-2jPGcPtg9A-A6FDu8Xi-6E8SoSeuq7k&authKey=qGQHOZQSKjrAome2LC0HZYHL8%2FEbXAAOqzL%2BSt2XmyXJJsuvQsx%2F9p4gXljvkdYP&noverify=0&group_code=339194566), 和其他用户一起交流使用心得。
