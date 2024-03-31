@@ -1,0 +1,35 @@
+---
+sidebar_position: 4
+---
+
+# 解释器 (进阶)
+
+本文主要针对 `Entity`, `Material`, `ItemStack` 三种解释器的 **共同特性** 进行解释说明。
+
+```text title="格式"
+(%namespace%:)%key%[%data%=%value%]
+```
+
+```text title="示例"
+chest ················ 任意箱子
+chest[type=SINGLE] ··· 单体箱子（基于 BlockData 需要 1.13+ 才可以使用）
+```
+
+## KeyFlags
+
+除了这些直接写出来的方式，还可以使用 **特殊规则**，以 `ItemStack` 为例：
+
+| 规则              | 说明   | 示例                    |
+|-----------------|------|-----------------------|
+| <code>^</code>  | 前缀判定 | <code>^diamond</code> |
+| <code>$</code>  | 后缀判定 | <code>sword$</code>   |
+| <code>()</code> | 包含   | <code>(sword)</code>  |
+| <code>*</code>  | 所有   | <code>*</code>        |
+
+没看懂? 举个例子：
+
+```
+sword$[name=傻逼] ······· 以 "sword" 结尾的物品类型，且名字中包含 "傻逼"。
+```
+
+## DataMatch

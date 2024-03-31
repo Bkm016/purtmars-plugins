@@ -591,14 +591,20 @@ com.dre.brewery.api.events.PlayerPushEvent
 
 执行命令时。
 
-| 条件         | 解释器       | 判定   | 说明 |
-|------------|-----------|------|----|
-| `position` | Position  | 玩家位置 | 无  |
-| `command`  | String    | 命令   | 无  |
+| 条件         | 解释器          | 判定   | 说明 |
+|------------|--------------|------|----|
+| `position` | Position     | 玩家位置 | 无  |
+| `command`  | String（前缀判定） | 命令   | 无  |
 
 | 条件变量      | 类型     | 说明 |
 |-----------|--------|----|
 | `command` | String | 命令 |
+
+:::tip
+
+在所有使用 `String` 解释器的条目类型中，只有 `command` 为前缀判定，非包含判定。
+
+:::
 
 ### `[FV]` player damage
 

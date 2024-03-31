@@ -44,6 +44,8 @@ damage: 10..15
 
 除 `command` 类型采用 `前缀` 规则外，其余 `String` 均使用 `包含` 规则。
 
+---
+
 ## String & List
 
 这个类型是 `String` 的一种特殊形式，采用 `完全匹配` 规则，但支持多个值。
@@ -70,20 +72,130 @@ npc_quest:
 
 ## Position
 
-用于匹配坐标。
+用于匹配坐标，有三种判断方式。
+
+### Area (区域)
+
+通过两点定义一个矩形区域。
+
+```yaml
+npc_quest:
+  task:
+    objective: anpc interact
+    condition:
+      position: world 0 0 0 > 10 10 10
+```
+
+当 `NPC 坐标` 在 `0 0 0` 和 `10 10 10` 之间时，此条件成立。
+
+### Range (范围)
+
+通过一点定义一个球形区域。
+
+```yaml
+npc_quest:
+  task:
+    objective: anpc interact
+    condition:
+      position: world 0 0 0 ~ 10
+```
+
+当 `NPC 坐标` 在以 `0 0 0` 为中心，半径为 `10` 的球形区域内时，此条件成立。
+
+### Single (单点)
+
+通过一个或多个点定义坐标。
+
+```yaml
+block_quest:
+  task:
+    objective: block break
+    condition:
+      position: world 0 0 0 & 1 1 1 & 2 2 2
+```
+
+当 `方块坐标` 位于 `0 0 0` 或 `1 1 1` 或 `2 2 2` 时，此条件成立。
+
+:::tip
+
+注意这些符号别搞混了，是通过这些符号 (`>`, `~`, `&`) 来判断解释器的类型。
+
+:::
 
 ## Vector
 
 是 `Position` 的一种特殊形式，没有世界参数。
 
+```yaml
+npc_quest:
+  task:
+    objective: anpc interact
+    condition:
+      position:clicked: 0 1.75 0 ~ 0.25
+```
+
+当 `NPC 点击位置` 在以 `0 1.75 0` 为中心，半径为 `0.25` 的球形区域内时，此条件成立。
+
+---
+
 ## Entity
 
 用于匹配实体。
 
+```text title="格式"
+(%namespace%:)%key%[%data%=%value%]
+```
+
+:::tip
+
+从这里开始要上难度了，都是这种格式，就像原版。
+
+:::
+
+```text title="示例"
+zombie ······················ 任意僵尸类型
+zombie[name=傻逼] ············ 名字为 "傻逼" 的僵尸
+minecraft:zombie[name=傻逼] ·· 名字为 "傻逼" 的僵尸（此命名空间是默认的，可以省略）
+```
+
+```text title="示例"
+mythicmobs:SkeletalKnight ···· ID 为 "SkeletalKnight" 的 MythicMobs 怪物
+```
+
+:::tip
+
+其实知道这些就够用了，完整的匹配规则请移步至 [解释器 (实体)](parser_entity)。
+
+:::
+
 ## Material
 
-用于匹配材质。
+用于匹配材质（方块）。
+
+```text title="示例"
+chest ················ 任意箱子
+chest[type=SINGLE] ··· 单体箱子（基于 BlockData 需要 1.13+ 才可以使用）
+```
+
+:::tip
+
+完整的匹配规则请移步至 [解释器 (材质)](parser_material)。
+
+:::
 
 ## ItemStack
 
 用于匹配物品。
+
+```text title="示例"
+diamond_sword ················ 任意钻石剑
+diamond_sword[name=傻逼] ······ 名字包含 "傻逼" 的钻石剑
+diamond_sword[lore=傻逼] ······ 描述包含 "傻逼" 的钻石剑
+```
+
+:::tip
+
+颜色字符请使用 `§` 符号，完整的匹配规则请移步至 [解释器 (物品)](parser_item)。
+
+:::
+
