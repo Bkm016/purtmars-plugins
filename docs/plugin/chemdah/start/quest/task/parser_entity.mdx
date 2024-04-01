@@ -10,4 +10,48 @@ sidebar_position: 7
 
 :::
 
-此部分暂无说明。
+## Minecraft
+
+原版生物，仅支持 `name` 参数。
+
+```text title="示例"
+zombie[name=傻逼] ············ 名字为 "傻逼" 的僵尸
+```
+
+## Citizens
+
+Citizens 单位，支持 `type`, `name`。
+
+```text title="示例"
+citizens:1
+citizens:1[name=傻逼]
+```
+
+:::tip
+
+注意，非原版不可省略命名空间，如 `citizens`。
+
+:::
+
+## MythicMobs
+
+MythicMobs 怪物，支持 `type`, `name`, `level`, `stance`, `faction` 或从配置中读取数据。
+
+```text title="示例"
+mythicmobs:SkeletalKnight
+mythicmobs:SkeletalKnight[name=傻逼]
+```
+
+### 判定配置文件中的数据
+
+```text title="示例"
+mythicmobs:SkeletalKnight[Damage>10]
+```
+
+```yaml title="配置" {5}
+SkeletalKnight:
+  Type: WITHER_SKELETON
+  Display: '&aSkeletal Knight'
+  Health: 40
+  Damage: 8
+```

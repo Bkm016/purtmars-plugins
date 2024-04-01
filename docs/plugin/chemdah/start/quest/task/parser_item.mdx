@@ -10,4 +10,36 @@ sidebar_position: 9
 
 :::
 
-此部分暂无说明。
+物品判定基本涵盖了所有常用的物品数据，包括自定义 `NBT`。
+
+## 基本数据
+
+| 节点               | 描述           | 示例                                |
+|------------------|--------------|-----------------------------------|
+| `name`           | 物品名称（包含判定）   | `diamond_sword[name=傻逼]`          |
+| `lore`           | 物品描述（包含判定）   | `diamond_sword[lore=傻逼]`          |
+| `damage`         | 物品耐久（附加值）    | `diamond_sword[damage=0]`         |
+| `enchant`        | 附魔           | `diamond_sword[ench=sharpness]`   |
+| `enchant.<NAME>` | 附魔等级         | `diamond_sword[ench.sharpness=5]` |
+| `potion`         | 药水效果         | `diamond_sword[potion=luck]`      |
+| `model`          | 自定义模型数据（高版本） | `diamond_sword[model=0]`          |
+
+:::tip
+
+名称和描述中的颜色字符请使用 `§` 符号。
+
+:::
+
+## NBT 数据
+
+使用 `nbt` 节点来判定物品的 `NBT` 数据，例如：
+
+```text
+diamond_sword[nbt.test=1]
+```
+
+多层级 `NBT` 数据可以使用 `.` 分隔，例如：
+
+```text
+diamond_sword[nbt.bar.foo=傻逼]
+```

@@ -10,4 +10,33 @@ sidebar_position: 8
 
 :::
 
-此部分暂无说明。
+在 `1.13+` 版本中，进行复杂的材质判定，您需要掌握 `/chapi blockinfo` 命令。
+
+<img id="game_img" src="/img/command-api-blockinfo-2.png" width="600" style={{marginBottom: "1rem"}}/>
+
+通过这个指令，您可以查看到当前方块的所有信息，例如方块的材质、方块的方向、方块的状态等。
+
+```text title="示例"
+water_cauldron ················ 注水的干锅
+water_cauldron[level=3] ······· 注水的干锅，水位为 3
+```
+
+例如在任务中判定玩家需要玩家交互一个充满水的干锅：
+
+```yaml title="任务文件" {4-6}
+test_interact:
+  task:
+    0:
+      objective: block interact
+      condition:
+        material: water_cauldron[level=3]
+  agent:
+    completed: |-
+      tell "你完成了 block interact 任务"
+```
+
+:::caution
+
+低版本只能支持简单的材质判定，例如 `minecraft:cauldron`。
+
+:::
