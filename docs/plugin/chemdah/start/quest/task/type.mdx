@@ -1464,3 +1464,152 @@ com.dre.brewery.api.events.PlayerPushEvent
 | 条件         | 解释器       | 判定   | 说明 |
 |------------|-----------|------|----|
 | `position` | Position  | 玩家位置 | 无  |
+
+### `[ID]` customcrops bonemeal use
+
+使用骨粉时。
+
+| 条件                | 解释器           | 判定     | 说明 |
+|-------------------|---------------|--------|----|
+| `position`        | Position      | 玩家位置   | 无  |
+| `item`            | ItemStack     | 手持物品   | 无  |
+| `bonemeal`        | String & List | 骨粉     | 无  |
+| `bonemeal:required` | String & List | 需求物品   | 无  |
+| `bonemeal:returned` | String & List | 返还物品   | 无  |
+| `crop`            | String & List | 作物     | 无  |
+| `crop:seed`       | String & List | 种子     | 无  |
+| `block`           | String & List | 方块     | 无  |
+| `block:type`      | String & List | 方块类型   | 无  |
+
+### `[ID]` customcrops break use
+
+破坏作物时。
+
+| 条件           | 解释器           | 判定     | 说明 |
+|--------------|---------------|--------|----|
+| `position`   | Position      | 玩家位置   | 无  |
+| `crop`       | String & List | 作物     | 无  |
+| `crop:seed`  | String & List | 种子     | 无  |
+| `block`      | String & List | 方块     | 无  |
+| `block:type` | String & List | 方块类型   | 无  |
+| `stage`      | String & List | 生长阶段   | 无  |
+| `reason`     | String & List | 破坏原因   | 无  |
+
+### `[ID]` customcrops fertilizer use
+
+使用肥料时。
+
+| 条件 | 解释器 | 判定 | 说明 |
+|------------|-----------|------|----|
+| `position` | Position | 玩家位置 | 无 |
+| `item` | ItemStack | 手持物品 | 无 |
+| `fertilizer` | String & List | 肥料 | 无 |
+| `pot` | String & List | 花盆 | 无 |
+| `block` | String & List | 方块 | 无 |
+| `block:type` | String & List | 方块类型 | 无 |
+
+### `[ID]` customcrops interact use
+
+与作物交互时。
+
+| 条件 | 解释器 | 判定 | 说明 |
+|------------|-----------|------|----|
+| `position` | Position | 玩家位置 | 无 |
+| `item` | ItemStack | 手持物品 | 无 |
+| `crop` | String & List | 作物 | 无 |
+| `crop:seed` | String & List | 种子 | 无 |
+| `block` | String & List | 方块 | 无 |
+| `block:type` | String & List | 方块类型 | 无 |
+| `stage` | String & List | 生长阶段 | 无 |
+
+### `[ID]` customcrops plant use
+
+种植作物时。
+
+| 条件 | 解释器 | 判定 | 说明 |
+|------------|-----------|------|----|
+| `position` | Position | 玩家位置 | 无 |
+| `item` | ItemStack | 手持物品 | 无 |
+| `crop` | String & List | 作物 | 无 |
+| `crop:seed` | String & List | 种子 | 无 |
+| `block` | String & List | 方块 | 无 |
+| `block:type` | String & List | 方块类型 | 无 |
+| `point` | Int | 点数 | 无 |
+
+### `[ID]` customcrops scarecrow place
+
+放置稻草人时。
+
+| 条件 | 解释器 | 判定 | 说明 |
+|------------|-----------|------|----|
+| `position` | Position | 玩家位置 | 无 |
+| `item` | String & List | 稻草人物品 | 无 |
+
+### `[ID]` customcrops water pot
+
+给花盆浇水时。
+
+| 条件 | 解释器 | 判定 | 说明 |
+|------------|-----------|------|----|
+| `position` | Position | 玩家位置 | 无 |
+| `item` | ItemStack | 手持物品 | 无 |
+| `pot` | String & List | 花盆 | 无 |
+| `can` | String & List | 浇水壶 | 无 |
+| `can:item` | String & List | 浇水壶物品 | 无 |
+
+### `[ID]` customcrops water sprinkler
+
+给洒水器浇水时。
+
+| 条件 | 解释器 | 判定 | 说明 |
+|------------|-----------|------|----|
+| `position` | Position | 玩家位置 | 无 |
+| `item` | ItemStack | 手持物品 | 无 |
+| `sprinkler` | String & List | 洒水器 | 无 |
+| `can` | String & List | 浇水壶 | 无 |
+| `can:item` | String & List | 浇水壶物品 | 无 |
+
+### `[ID]` customfishing failure
+
+钓鱼失败时。
+
+| 条件 | 解释器 | 判定 | 说明 |
+|------------|-----------|------|----|
+| `position` | Position | 玩家位置 | 无 |
+| `hook` | Entity | 鱼钩 | 无 |
+
+### `[ID]` customfishing rod cast
+
+抛竿时。
+
+| 条件 | 解释器 | 判定 | 说明 |
+|------------|-----------|------|----|
+| `position` | Position | 玩家位置 | 无 |
+| `rod` | ItemStack | 鱼竿 | 无 |
+| `bait` | ItemStack | 鱼饵 | 无 |
+| `hook` | ItemStack | 鱼钩 | 无 |
+| `util` | ItemStack | 工具 | 无 |
+
+### `[ID]` customfishing success
+
+钓鱼成功时。
+
+| 条件 | 解释器 | 判定 | 说明 |
+|------------|-----------|------|----|
+| `position` | Position | 玩家位置 | 无 |
+| `hook` | Entity | 鱼钩 | 无 |
+| `loot` | String & List | 战利品 | 无 |
+| `amount` | Int | 数量 | 无 |
+
+| 条件变量 | 类型 | 说明 |
+|----------|-----|-----|
+| `amount` | Int | 数量 |
+
+### `[ID]` customfishing totem active
+
+图腾激活时。
+
+| 条件 | 解释器 | 判定 | 说明 |
+|------------|-----------|------|----|
+| `position` | Position | 玩家位置 | 无 |
+| `totem` | String & List | 图腾 | 无 |
