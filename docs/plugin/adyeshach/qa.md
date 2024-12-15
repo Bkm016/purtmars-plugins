@@ -51,9 +51,3 @@ A: 根据你的版本类型：
 - 免费版：可以查阅官方文档解决问题
 - 基础版：可以通过 Github Issues 获取支持
 - 高级版：享有专业的技术支持服务
-
-**Q: 在哪里可以找到更多技术文档？**
-A: 你可以在以下位置找到详细文档：
-- 安装配置：参考[安装指南](/plugin/adyeshach/start/install)
-- 命令系统：查看[命令文档](/plugin/adyeshach/start/command)
-- 开发文档：浏览[开发指南](/plugin/adyeshach/start/dev)
