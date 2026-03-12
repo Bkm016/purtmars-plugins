@@ -4,4 +4,68 @@ sidebar_position: 5
 
 # 组队
 
-此部分暂无说明。
+`party` 组件控制任务的组队相关行为，包括任务共享、协同完成条目、以及最低人数限制。可以配置在任务级或条目级。
+
+```yaml title="基础用法"
+quest_dungeon:
+  addon:
+    party:
+      share: true              # 允许将此任务共享给队伍成员
+      share-only-leader: true  # 只有队长可以共享
+      continue: true           # 队伍成员的行为可以帮助你推进条目
+      require-members: 3       # 队伍至少需要 3 人才能进行此任务
+  task:
+    kill_boss:
+      objective: kill
+      goal:
+        name: EnderDragon
+        amount: 1
+      addon:
+        party:
+          continue: true       # 队员击杀也算进你的进度
+          require-members: 2   # 此条目要求队伍至少 2 人
+```
+
+## 字段说明
+
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `share` | boolean | false | 允许将任务共享给队伍成员 |
+| `share-only-leader` | boolean | false | 仅队长可以发起共享 |
+| `continue` | boolean | false | 队员的行为可以帮助完成条目进度 |
+| `require-members` | number | 0 | 进行该任务或条目所需的最低队伍人数，0 表示不限制 |
+
+## 完整示例
+
+```yaml title="多人副本任务"
+quest_raid:
+  meta:
+    name: '团队副本'
+  addon:
+    party:
+      share: true             # 队长接取后可共享给全队
+      share-only-leader: true
+      require-members: 4      # 至少 4 人组队
+  task:
+    clear_mobs:
+      objective: kill
+      goal:
+        name: Zombie
+        amount: 50
+      addon:
+        party:
+          continue: true      # 队员击杀共享计数
+    activate_switch:
+      objective: interact
+      goal:
+        name: switch_lever
+      addon:
+        party:
+          require-members: 2  # 激活开关时队伍至少 2 人在线
+```
+
+:::tip
+
+`require-members` 同时支持任务级和条目级配置。任务级限制影响整个任务的接取和共享，条目级限制仅影响该条目的推进时机。
+
+:::

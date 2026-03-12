@@ -4,4 +4,101 @@ sidebar_position: 1
 
 # 自动化
 
-此部分暂无说明。
+`automation` 组件提供两种自动化方式：登录自动接受任务，以及按计划定时分配任务。
+
+## 自动接受
+
+设置 `auto-accept: true` 后，玩家上线时会自动接受该任务（前提是尚未接受过）。
+
+```yaml title="自动接受示例"
+daily_login_quest:
+  addon:
+    automation:
+      auto-accept: true  # 登录时自动接受
+  task:
+    0:
+      objective: ...
+```
+
+## 计划任务
+
+`plan` 配置让任务在指定时间点自动分配给在线玩家。每次触发时，从任务池中随机选取指定数量的任务派发。
+
+### type 格式
+
+| 格式 | 说明 | 示例 |
+|------|------|------|
+| `hour <minute>` | 每小时的第 N 分钟 | `hour 30` |
+| `day <days> [hour] [minute]` | 每隔 N 天，可指定时分 | `day 1 6 0` |
+| `week <weeks> [day] [hour] [minute]` | 每隔 N 周，可指定星期、时分 | `week 1 1 6 0` |
+
+`day` 的 `hour` 默认 6，`minute` 默认 0。`week` 的 `day` 默认 6（星期六），`hour` 默认 0，`minute` 默认 0。
+
+### plan 字段
+
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `type` | string | — | 计划类型，见上表 |
+| `count` | int | 1 | 每次随机派发的任务数量 |
+| `method` | string | `START_IN_MONDAY` | 计时起点，`START_IN_MONDAY` 或 `START_IN_SUNDAY` |
+| `group` | string | — | 分组名，同组任务共享计划和池子 |
+
+### 分组机制
+
+`group` 用于把多个任务合并到同一个任务池。只需要其中一个任务配置 `plan`（包含 `group` 名），其余任务只写 `plan.group` 即可加入池子。每次触发时从整个池子里随机选取 `count` 个。
+
+计划的下次触发时间存储在玩家数据中：
+
+```
+quest.automation.<groupId>.next
+```
+
+## 完整示例
+
+```yaml title="每日任务系统"
+# 主配置任务：定义计划和池子
+daily_quest_1:
+  addon:
+    automation:
+      plan:
+        type: day 1 6 0      # 每天早上 6:00 触发
+        count: 3             # 随机派发 3 个
+        group: daily         # 分组名为 daily
+  task:
+    0:
+      objective: ...
+
+# 加入同一个池子，不需要重复配置 plan
+daily_quest_2:
+  addon:
+    automation:
+      plan:
+        group: daily         # 只写 group，加入 daily 池子
+  task:
+    0:
+      objective: ...
+
+daily_quest_3:
+  addon:
+    automation:
+      plan:
+        group: daily
+  task:
+    0:
+      objective: ...
+
+# 另一个任务：登录直接接受，不走计划
+welcome_quest:
+  addon:
+    automation:
+      auto-accept: true
+  task:
+    0:
+      objective: ...
+```
+
+:::tip
+
+同时配置 `auto-accept` 和 `plan` 时，`auto-accept` 优先生效，`plan` 的分配逻辑不会执行。
+
+:::

@@ -2,6 +2,111 @@
 sidebar_position: 8
 ---
 
-# 状态
+# 进度显示
 
-此部分暂无说明。
+`stats` 组件通过 BossBar 显示任务或条目的进度，支持临时显示和持久显示两种模式，可以自定义样式、颜色、显示内容，也可以通过 Kether 脚本自定义进度计算逻辑。
+
+```yaml title="基础示例"
+quest_collect:
+  task:
+    collect_wood:
+      objective: collect
+      goal:
+        name: OAK_LOG
+        amount: 64
+      addon:
+        stats:
+          visible: true                                          # 进度更新时短暂显示
+          stay: 60                                               # 显示 60 tick（3 秒）
+          color: GREEN
+          style: SEGMENTED_10
+          content: '&a{name} &f{value}&7/&f{target} &8({percent}%)'
+```
+
+## 字段说明
+
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `visible` | boolean / `'always'` | false | `true` 临时显示，`false` 不显示，`'always'` 持久显示 |
+| `stay` | number | 配置文件默认值 | 临时显示时长（tick），仅 `visible: true` 时有效 |
+| `style` | string | 配置文件默认值 | BossBar 样式，见下方列表 |
+| `color` | string | 配置文件默认值 | BossBar 颜色，见下方列表 |
+| `content` | string | 配置文件默认值 | 显示内容模板，支持占位符变量 |
+| `boss-music` | boolean | false | 播放 Boss 音效 |
+| `darken-sky` | boolean | false | 黑化天空 |
+| `$` | list | - | Kether 脚本，用于自定义进度计算 |
+
+**style 可选值：** `SOLID`、`SEGMENTED_6`、`SEGMENTED_10`、`SEGMENTED_12`、`SEGMENTED_20`
+
+**color 可选值：** `PINK`、`BLUE`、`RED`、`GREEN`、`YELLOW`、`PURPLE`、`WHITE`
+
+## 内容模板变量
+
+| 变量 | 说明 |
+|------|------|
+| `{name}` | 任务或条目的显示名称 |
+| `{value}` | 当前进度值 |
+| `{target}` | 目标进度值 |
+| `{percent}` | 完成百分比（0~100） |
+
+## 持久显示
+
+`visible: 'always'` 让 BossBar 在整个任务期间持续显示，适合配置在任务级来展示整体进度。
+
+```yaml title="任务级持久进度条 + 条目级临时进度条"
+quest_main_story:
+  meta:
+    name: '主线任务'
+  addon:
+    stats:
+      visible: 'always'                     # 任务进行期间始终显示整体进度
+      color: PURPLE
+      style: SOLID
+      content: '&5主线进度 &f{value}&7/&f{target}'
+  task:
+    kill_dragon:
+      objective: kill
+      goal:
+        name: Ender_Dragon
+        amount: 1
+      addon:
+        stats:
+          visible: true                     # 此条目单独显示进度，完成后消失
+          stay: 100
+          color: RED
+          style: SEGMENTED_6
+          content: '&c击杀进度 &f{value}&7/&f{target}'
+          boss-music: true                  # 播放 Boss 战音效
+          darken-sky: true                  # 黑化天空增加氛围
+```
+
+## 自定义进度脚本
+
+通过 `$` 字段注入 Kether 脚本，手动设置 `value`、`target`、`percent` 变量来覆盖默认进度计算。
+
+```yaml title="自定义进度计算"
+quest_score_challenge:
+  tasks:
+    score_task:
+      objective: player_data
+      goal:
+        key: challenge_score
+        target: 500
+      addon:
+        stats:
+          visible: true
+          stay: 80
+          color: YELLOW
+          style: SEGMENTED_20
+          content: '&e挑战分数 &f{value} &7/ &f{target}'
+          $:
+            - 'set value to player data challenge_score'  # 当前分数
+            - 'set target to 500'                         # 目标分数
+            # 不设置 percent，自动按 value/target 比例计算
+```
+
+:::tip
+
+`$` 脚本中三个变量（`value`、`target`、`percent`）可以只覆盖部分，未设置的变量回退到条目的默认计算结果。
+
+:::

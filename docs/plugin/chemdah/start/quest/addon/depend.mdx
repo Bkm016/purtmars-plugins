@@ -4,4 +4,109 @@ sidebar_position: 3
 
 # 依赖
 
-此部分暂无说明。
+`depend` 组件设置任务或条目的前置条件，只有依赖项全部完成后才能推进。
+
+## 任务级依赖
+
+在任务上配置 `depend`，列出需要提前完成的任务 ID。
+
+```yaml title="前置任务示例"
+chapter_2_quest:
+  addon:
+    depend:
+      - chapter_1_quest    # 需要先完成 chapter_1_quest
+      - intro_quest        # 以及 intro_quest
+  task:
+    0:
+      objective: ...
+```
+
+也可以引用整个任务组，组内所有任务都需完成：
+
+```yaml title="依赖任务组"
+chapter_3_quest:
+  addon:
+    depend:
+      - group:chapter_2    # chapter_2 组中的所有任务都完成才解锁
+  task:
+    0:
+      objective: ...
+```
+
+:::tip
+
+默认情况下，即使前置任务未完成，玩家也可以提前接受任务（`allow-early-acceptance: true`）。若要严格拦截，在 `config.yml` 中关闭：
+
+```yaml title="config.yml"
+default-quest:
+  allow-early-acceptance: false
+```
+
+:::
+
+## 条目级依赖
+
+在条目（task）上配置 `depend`，控制条目的解锁顺序。条目可以依赖：
+
+- 同任务内的其他条目 ID
+- 其他任务 ID
+- `*`（依赖当前任务内所有其他条目）
+
+```yaml title="条目顺序依赖"
+chain_quest:
+  task:
+    collect_wood:
+      objective: block break
+      condition:
+        material: oak_log
+      goal:
+        amount: 10
+
+    craft_planks:
+      addon:
+        depend:
+          - collect_wood    # 必须先完成 collect_wood
+      objective: craft item
+      condition:
+        material: oak_planks
+      goal:
+        amount: 20
+
+    build_house:
+      addon:
+        depend:
+          - craft_planks    # 必须先完成 craft_planks
+      objective: ...
+```
+
+使用 `*` 依赖所有其他条目：
+
+```yaml title="最终汇总条目"
+final_quest:
+  task:
+    task_a:
+      objective: ...
+
+    task_b:
+      objective: ...
+
+    final_task:
+      addon:
+        depend:
+          - "*"    # task_a 和 task_b 全部完成后才激活
+      objective: ...
+```
+
+条目 ID 的查找顺序：先在当前任务的条目中查找，找不到则视为外部任务 ID。
+
+:::tip
+
+依赖列表也可以写成逗号或分号分隔的单行字符串：
+
+```yaml title="单行写法"
+depend: "quest_1,quest_2"
+# 或
+depend: "quest_1;quest_2"
+```
+
+:::

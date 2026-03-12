@@ -4,4 +4,143 @@ sidebar_position: 2
 
 # 管控
 
-此部分暂无说明。
+`control` 组件控制玩家是否能接受或完成任务。配置为列表，每项是一条规则，**所有规则都通过才允许操作**。
+
+支持四种规则类型：
+
+- `$`（脚本代理）：Kether 脚本条件
+- `coexist`：限制同类型任务的并行数量
+- `repeat`：限制接受/完成次数
+- `cooldown`：冷却时间
+
+## 脚本代理（$）
+
+用 `$` 作为键，值为 Kether 脚本，脚本返回布尔值决定是否放行。
+
+```yaml title="脚本代理示例"
+some_quest:
+  addon:
+    control:
+      - $: check permission example.quest  # 检查权限
+```
+
+多行脚本写成列表：
+
+```yaml title="多行脚本"
+some_quest:
+  addon:
+    control:
+      - $:
+          - check level >= 10
+          - check permission vip.quest
+```
+
+## 共存（coexist）
+
+限制玩家同时进行的任务数量，按任务的 `type` 标签分类统计。
+
+```yaml title="共存限制示例"
+some_daily_quest:
+  addon:
+    control:
+      - type: coexist
+        amount:
+          daily: 3    # daily 类型任务最多同时进行 3 个
+          weekly: 5   # weekly 类型任务最多同时进行 5 个
+```
+
+`amount` 下的键对应任务的 `type` 字段值。
+
+## 重复（repeat）
+
+限制玩家接受或完成任务的次数，可选周期重置。
+
+```yaml title="重复限制示例"
+some_quest:
+  addon:
+    control:
+      - type: repeat accept    # 触发时机：accept / complete / fail
+        amount: 3              # 最多接受 3 次
+        period: day 1 4 0      # 每天凌晨 4:00 重置次数（可选）
+        group: daily           # 同组共享次数限制（可选）
+```
+
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `type` | string | — | `repeat accept` / `repeat complete` / `repeat fail` |
+| `amount` | int | — | 允许的最大次数 |
+| `period` | string | — | 重置周期，如 `day 1 4 0`、`week 1 1 4 0` |
+| `group` | string | — | 分组名，同组任务共享计数 |
+
+数据存储格式：
+```
+quest.repeat.<group或questId>.<trigger>.amount
+quest.repeat.<group或questId>.<trigger>.time
+```
+
+## 冷却（cooldown）
+
+任务操作后进入冷却，冷却期内无法再次操作。
+
+```yaml title="固定时长冷却"
+some_quest:
+  addon:
+    control:
+      - type: cooldown complete  # 完成后冷却
+        time: 1h30m              # 冷却 1 小时 30 分钟
+        group: daily             # 同组共享冷却（可选）
+```
+
+```yaml title="周期重置冷却"
+some_quest:
+  addon:
+    control:
+      - type: cooldown accept    # 接受后冷却
+        time: day 1 4 0          # 每天凌晨 4:00 重置
+```
+
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `type` | string | — | `cooldown accept` / `cooldown complete` / `cooldown fail` |
+| `time` | string | — | 固定时长（`1h`、`30m`、`1d`）或重置时间点（`day 1 4 0`） |
+| `group` | string | — | 分组名，同组任务共享冷却 |
+
+数据存储格式：
+```
+quest.cooldown.<group或questId>.<trigger>
+```
+
+## 组合示例
+
+```yaml title="完整管控配置"
+some_quest:
+  addon:
+    control:
+      # 权限检查
+      - $: check permission example.quest
+
+      # 同时进行的 daily 任务不超过 3 个
+      - type: coexist
+        amount:
+          daily: 3
+
+      # 每天最多接受 1 次，每天凌晨 4:00 重置
+      - type: repeat accept
+        amount: 1
+        period: day 1 4 0
+        group: daily
+
+      # 完成后 24 小时冷却
+      - type: cooldown complete
+        time: 24h
+        group: daily
+  task:
+    0:
+      objective: ...
+```
+
+:::tip
+
+`repeat` 和 `cooldown` 的 `group` 填相同值时，同组的所有任务共享这份计数/冷却数据，适合用于限制每日任务整体次数。
+
+:::

@@ -34,4 +34,48 @@ sword$[name=傻逼] ······· 以 "sword" 结尾的物品类型，且名字
 
 ## DataMatch
 
-此部分暂无说明。
+`[]` 中括号内的内容就是 DataMatch，用来对物品、实体、方块的 **属性** 进行精确匹配。格式是 `属性名 运算符 值`，多个条件用逗号隔开。
+
+```text title="格式"
+%key%[%attr%%op%%value%, %attr%%op%%value%, ...]
+```
+
+支持的运算符如下：
+
+| 运算符 | 含义   | 示例              |
+|-----|------|-----------------|
+| `=` | 等于   | `name=钻石剑`      |
+| `!=` | 不等于  | `type!=SINGLE`  |
+| `>` | 大于   | `durability>10` |
+| `<` | 小于   | `durability<50` |
+| `>=` | 大于等于 | `amount>=5`     |
+| `<=` | 小于等于 | `amount<=64`    |
+| `(值1\|值2)` | 包含于集合 | `type(CHEST\|BARREL)` |
+
+:::tip
+
+`(值1|值2)` 语法表示"值等于其中任意一个"，等价于 IN 判断。分隔符支持 `|` 和 `/`。
+
+:::
+
+字符串比较时，在值前加 `#` 前缀可以 **忽略颜色代码** 进行比较：
+
+```text title="忽略颜色匹配"
+diamond_sword[name=#钻石剑]
+```
+
+实际使用示例：
+
+```yaml title="条件示例"
+# 匹配名字叫"钻石剑"、耐久大于 100 的钻石剑
+condition:
+  item: diamond_sword[name=钻石剑,durability>100]
+
+# 匹配单体或陷阱箱子
+condition:
+  material: chest[type(SINGLE|TRAPPED)]
+
+# 匹配不是末影人的实体
+condition:
+  entity: '*[type!=ENDERMAN]'
+```

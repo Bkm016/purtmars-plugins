@@ -1613,3 +1613,45 @@ com.dre.brewery.api.events.PlayerPushEvent
 |------------|-----------|------|----|
 | `position` | Position | 玩家位置 | 无 |
 | `totem` | String & List | 图腾 | 无 |
+
+### `[IV]` player animation
+
+玩家执行动画时，例如左键挥手。
+
+| 条件          | 解释器           | 判定   | 说明                                                                                                                               |
+|-------------|---------------|------|----------------------------------------------------------------------------------------------------------------------------------|
+| `position`  | Position      | 玩家位置 | 无                                                                                                                                |
+| `animation` | String & List | 动画类型 | [PlayerAnimationType](https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/event/player/PlayerAnimationEvent.html) |
+
+### `[IC]` never
+
+永远不会完成的目标，用于占位或配合脚本逻辑手动完成。
+
+该类型没有任何条件，且不监听任何事件，只能通过外部 API 手动触发完成。
+
+### `[ID]` sandalphon block break
+
+破坏 Sandalphon 自定义方块时。
+
+| 条件         | 解释器      | 判定     | 说明              |
+|------------|----------|--------|-----------------|
+| `position` | Position | 方块位置   | 无               |
+| `material` | Material | 方块材质   | 无               |
+| `id`       | String   | 自定义方块 ID | 在 Sandalphon 中配置的方块 ID |
+
+| 条件变量  | 类型     | 说明        |
+|-------|--------|-----------|
+| `id`  | String | 自定义方块 ID  |
+
+### `[ID]` sandalphon chest open
+
+开启 Sandalphon 宝箱时。
+
+| 条件         | 解释器      | 判定   | 说明     |
+|------------|----------|------|--------|
+| `position` | Position | 宝箱位置 | 无      |
+| `title`    | String   | 宝箱标题 | 无      |
+
+| 条件变量    | 类型     | 说明   |
+|---------|--------|------|
+| `title` | String | 宝箱标题 |

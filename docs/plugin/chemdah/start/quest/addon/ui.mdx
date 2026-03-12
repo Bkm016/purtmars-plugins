@@ -2,6 +2,38 @@
 sidebar_position: 11
 ---
 
-# 任务手册
+# 界面
 
-此部分暂无说明。
+`ui` 组件控制任务在任务手册（Chemdah Lab）中的显示，包括可见性、图标和描述文本。
+
+```yaml title="示例"
+quest_example:
+  addon:
+    ui:
+      visible:
+        start: true       # 未接取时也显示在手册中（可接 / 不可接状态）
+        complete: true    # 完成后显示为已完成状态
+      icon: "DIAMOND"     # 图标材质名，也可以填自定义模型 ID
+      description:
+        - "&7前往村庄，与村长对话。"
+        - "&7完成后可获得丰厚奖励。"
+        - ""
+        - "&e左键点击接受任务"
+```
+
+## 字段说明
+
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `visible.start` | boolean | `false` | 未接取时是否在手册中显示 |
+| `visible.complete` | boolean | `true` | 完成后是否在手册中显示为已完成 |
+| `icon` | string | — | 图标材质名或自定义模型 ID |
+| `description` | list | — | 描述文本，支持颜色代码和语言文件 |
+
+:::tip
+
+`visible.start` 为 `false` 时，任务在未接取状态下完全不出现在手册里。设为 `true` 后，手册会显示该任务，并根据接取条件是否满足展示「可接」或「不可接」两种状态。
+
+:::
+
+`description` 支持语言文件（inline lang），可以按玩家语言显示不同内容。

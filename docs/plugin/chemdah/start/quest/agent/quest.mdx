@@ -2,6 +2,145 @@
 sidebar_position: 1
 ---
 
-# 任务
+# 代理
 
-此部分暂无说明。
+代理（Agent）是任务生命周期中的 Kether 脚本钩子，在特定时机自动触发。写在任务或条目的 `agent:` 节点下。
+
+## 配置格式
+
+```yaml title="基本格式"
+my_quest:
+  agent:
+    accept: |       # 任务级代理，接受前触发
+      tell "欢迎接受任务！"
+    completed: |    # 任务级代理，完成后触发
+      give diamond 1
+  task:
+    0:
+      objective: block break
+      condition:
+        material: diamond_ore
+      goal:
+        amount: 10
+      agent:
+        completed: | # 条目级代理，该条目完成后触发
+          tell "条目完成！"
+```
+
+## 任务级代理
+
+共 9 种，写在任务根节点的 `agent:` 下。
+
+| 代理名 | 触发时机 | 可取消 |
+|--------|----------|--------|
+| `accept` | 接受任务前（含所有前置检测） | 是 |
+| `accepted` | 接受任务后 | 否 |
+| `accept-cancelled` | 接受被取消后 | 否 |
+| `fail` | 任务失败前 | 是 |
+| `failed` | 任务失败后 | 否 |
+| `complete` | 任务完成前 | 是 |
+| `completed` | 任务完成后 | 否 |
+| `restart` | 任务重启前 | 是 |
+| `restarted` | 任务重启后 | 否 |
+
+**可取消**的代理（`accept`、`fail`、`complete`、`restart`）通过脚本返回值控制流程：脚本最终值为 `false` 时取消该操作。
+
+```yaml title="用 accept 做额外条件检测"
+my_quest:
+  agent:
+    accept: |
+      # 检查玩家等级，不足时取消接受并提示
+      if (check level >= 10) { literal true } else {
+        tell "等级不足 10 级，无法接受该任务。"
+        literal false
+      }
+```
+
+:::tip
+
+`accept` 触发时任务尚未接受，不要在里面执行不可逆操作（如扣道具）。`accepted` 才是任务已确认接受的时机。
+
+:::
+
+## 条目级代理
+
+共 3 种，写在单个条目的 `agent:` 下，仅对该条目生效。
+
+| 代理名 | 触发时机 |
+|--------|----------|
+| `continued` | 条目继续后 |
+| `restarted` | 条目重置后 |
+| `completed` | 条目完成后 |
+
+条目级代理不支持取消。
+
+```yaml title="条目完成后给予奖励"
+my_quest:
+  task:
+    0:
+      objective: block break
+      condition:
+        material: diamond_ore
+      goal:
+        amount: 5
+      agent:
+        completed: |
+          give emerald 1   # 完成该条目后给予绿宝石
+```
+
+## 限制符（Restrict）
+
+代理默认只作用于触发事件的玩家本身。通过 `@` 语法可以扩展作用范围：
+
+```yaml title="完成后给全队奖励"
+my_quest:
+  agent:
+    completed@party: |   # 任务完成时，对队伍中所有成员执行
+      give diamond 5
+    completed@self: |    # 仅对自身执行（默认行为，通常可省略）
+      tell "任务完成，已为全队发放奖励！"
+```
+
+常用限制符：
+
+| 限制符 | 作用对象 |
+|--------|----------|
+| `@self` | 触发者本人（默认） |
+| `@party` | 所在队伍全部成员 |
+
+## Kether 上下文变量
+
+在代理脚本中可用的变量：
+
+| 变量 | 说明 |
+|------|------|
+| `sender` | 触发该代理的玩家 |
+| `@QuestContainer` | 当前任务的 ID |
+| `@QuestSelected` | 同上，用于 Kether 函数中选定任务 |
+
+```yaml title="完整示例"
+diamond_quest:
+  meta:
+    name: 钻石收集者
+  agent:
+    accept: |
+      # 接受前检查背包是否有空位（示意）
+      literal true
+    accepted: |
+      tell "任务【钻石收集者】已接受，加油！"
+    completed@self: |
+      tell "恭喜完成任务！"
+    completed@party: |
+      tell "你的队友完成了任务，一同获得奖励！"
+      give emerald 2
+  task:
+    0:
+      objective: block break
+      condition:
+        material: diamond_ore
+      goal:
+        amount: 10
+      agent:
+        completed: |
+          tell "已挖掘 10 块钻石矿，太棒了！"
+```

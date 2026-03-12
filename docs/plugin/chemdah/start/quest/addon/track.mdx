@@ -4,4 +4,274 @@ sidebar_position: 10
 
 # 追踪
 
-此部分暂无说明。
+`track` 组件为任务提供目标追踪功能，玩家追踪某个任务后，会在屏幕上获得视觉引导。组件由四个独立子系统组成：信标（beacon）、地标（landmark）、导航（navigation）、记分板（scoreboard），可以按需组合开启。
+
+玩家同时只能追踪一个任务。输入 `/chemdahtrackcancel` 取消当前追踪。
+
+## 追踪目标
+
+`center` 字段指定追踪的目的地，所有视觉效果都会指向这里。
+
+| 格式 | 说明 |
+|------|------|
+| `world x y z` | 固定坐标，如 `world 100 64 100` |
+| `adyeshach <实体ID>` | Adyeshach NPC，追踪目标跟随 NPC 移动，需安装 Adyeshach |
+
+```yaml title="示例"
+quest_example:
+  addon:
+    track:
+      center: "world 100 64 100"   # 追踪固定坐标
+```
+
+```yaml title="示例"
+quest_example:
+  addon:
+    track:
+      center: "adyeshach npc_elder"  # 追踪 NPC
+```
+
+`track` 可以写在任务（quest）或条目（task）上。写在任务上时，未接取任务的玩家追踪整个任务；接取后则追踪各条目各自的目标。
+
+## 显示文本
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `name` | string | 追踪显示名称，支持语言文件 |
+| `description` | list | 追踪描述文本（纯文本，不做变量替换），在 `scoreboard-option.content` 中通过 `{description}` 引用展开 |
+| `message` | list | 开始追踪时发送给玩家的提示信息，支持 `{name}` 变量 |
+
+```yaml title="示例"
+quest_example:
+  addon:
+    track:
+      center: "world 100 64 100"
+      name: "寻找村长"
+      description:
+        - "前往村庄中心"
+        - "与村长对话"
+      message:
+        - "&a开始追踪：{name}"
+```
+
+## 信标
+
+信标在目标位置显示一道粒子光柱，帮助玩家远距离确认目标方向。
+
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `beacon` | boolean | — | 是否启用信标 |
+| `beacon-option.type` | string | `HAPPY_VILLAGER` | 粒子类型 |
+| `beacon-option.size` | number | — | 粒子宽度 |
+| `beacon-option.count` | number | — | 粒子数量 |
+| `beacon-option.distance` | number | — | 最大显示距离（方块） |
+| `beacon-option.fixed` | boolean | `false` | `true` 固定在目标位置；`false` 在玩家前方动态显示方向 |
+| `beacon-option.period` | number | — | 粒子刷新间隔（tick） |
+
+```yaml title="示例"
+quest_example:
+  addon:
+    track:
+      center: "world 100 64 100"
+      beacon: true
+      beacon-option:
+        type: "FLAME"      # 火焰粒子
+        size: 0.5
+        count: 3
+        distance: 64       # 64 格内可见
+        fixed: false       # 在玩家前方显示指引方向
+        period: 10         # 每 10 tick 刷新一次
+```
+
+:::tip
+
+`fixed: false` 时，信标始终显示在玩家与目标连线方向的前方，即使目标超出可见距离也能给出方向提示。`fixed: true` 时信标固定在目标坐标上方。
+
+:::
+
+## 地标
+
+地标在目标位置显示全息文字，可以展示距离、名称等信息。
+
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `landmark` | boolean | — | 是否启用地标 |
+| `landmark-option.distance` | number | — | 最大显示距离（方块） |
+| `landmark-option.hide-near` | boolean | `false` | 靠近目标时自动隐藏地标 |
+| `landmark-option.content` | list | — | 显示内容，支持 `{distance}`、`{name}` 变量 |
+
+```yaml title="示例"
+quest_example:
+  addon:
+    track:
+      center: "world 100 64 100"
+      name: "村长"
+      landmark: true
+      landmark-option:
+        distance: 128        # 128 格内可见
+        hide-near: true      # 走到目标旁边时隐藏
+        content:
+          - "&e{name}"
+          - "&7距离：{distance}m"
+```
+
+## 导航
+
+导航通过寻路算法计算玩家到目标的路径，并沿路径播放粒子效果，引导玩家绕开障碍物。
+
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `navigation` | boolean | — | 是否启用导航 |
+| `navigation-option.sync` | boolean | `false` | 是否在主线程寻路，建议保持 `false` 使用异步 |
+| `navigation-option.distance` | number | — | 最大寻路距离（方块） |
+| `navigation-option.type` | string | — | 显示类型：`POINT` 或 `ARROW` |
+
+### POINT 模式
+
+沿路径每个节点播放一颗粒子。
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `point.period` | number | 粒子发送间隔（tick） |
+| `point.type` | string | 粒子类型 |
+| `point.y` | number | Y 轴偏移量 |
+| `point.size.x` | number | 粒子 X 轴散布范围 |
+| `point.size.y` | number | 粒子 Y 轴散布范围 |
+| `point.count` | number | 每个节点的粒子数量 |
+| `point.speed` | number | 粒子播放速度（节点间延迟 tick） |
+
+```yaml title="POINT 示例"
+quest_example:
+  addon:
+    track:
+      center: "world 100 64 100"
+      navigation: true
+      navigation-option:
+        type: "POINT"
+        distance: 64
+        point:
+          period: 20
+          type: "CRIT"
+          y: 0.5
+          size:
+            x: 0.1
+            y: 0.1
+          count: 1
+          speed: 2
+```
+
+### ARROW 模式
+
+沿路径每隔两个节点绘制一个箭头形状。
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `arrow.period` | number | 效果发送间隔（tick） |
+| `arrow.type` | string | 粒子类型 |
+| `arrow.y` | number | Y 轴偏移量 |
+| `arrow.density` | number | 箭头密度（粒子点数） |
+| `arrow.length` | number | 箭头长度 |
+| `arrow.angle` | number | 箭头张角 |
+| `arrow.speed` | number | 箭头播放速度（节点间延迟 tick） |
+
+```yaml title="ARROW 示例"
+quest_example:
+  addon:
+    track:
+      center: "world 100 64 100"
+      navigation: true
+      navigation-option:
+        type: "ARROW"
+        distance: 64
+        arrow:
+          period: 20
+          type: "CRIT"
+          y: 1.0
+          density: 3
+          length: 0.5
+          angle: 0.5
+          speed: 2
+```
+
+## 记分板
+
+记分板在玩家屏幕右侧显示任务信息，内容支持变量替换。
+
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `scoreboard` | boolean | — | 是否启用记分板 |
+| `scoreboard-option.length` | number | — | 每行最大字符数，超出自动换行 |
+| `scoreboard-option.content` | list | — | 显示内容，支持 `{name}`、`{description}` 变量 |
+
+`content` 中的每一项可以是普通文本（静态行），也可以是包含 `{description}` 的模板行（会展开为多行描述文本）。
+
+```yaml title="示例"
+quest_example:
+  addon:
+    track:
+      center: "world 100 64 100"
+      name: "寻找村长"
+      description:
+        - "前往村庄中心"
+        - "与村长对话"
+      scoreboard: true
+      scoreboard-option:
+        length: 20
+        content:
+          - "&e{name}"           # 静态行：显示追踪名称
+          - "{description}"      # 展开行：显示所有描述行
+```
+
+## 完整示例
+
+```yaml title="完整配置示例"
+quest_find_elder:
+  addon:
+    track:
+      center: "adyeshach npc_elder"   # 追踪 NPC
+      name: "寻找村长"
+      description:
+        - "前往村庄中心广场"
+        - "找到村长并对话"
+      message:
+        - "&a开始追踪：{name} &7（点击取消）"
+
+      beacon: true
+      beacon-option:
+        type: "VILLAGER_HAPPY"
+        size: 0.3
+        count: 2
+        distance: 128
+        fixed: false
+        period: 10
+
+      landmark: true
+      landmark-option:
+        distance: 128
+        hide-near: true
+        content:
+          - "&e{name}"
+          - "&7{distance}m"
+
+      navigation: true
+      navigation-option:
+        type: "POINT"
+        distance: 64
+        sync: false
+        point:
+          period: 20
+          type: "CRIT"
+          y: 0.5
+          size:
+            x: 0.1
+            y: 0.1
+          count: 1
+          speed: 2
+
+      scoreboard: true
+      scoreboard-option:
+        length: 20
+        content:
+          - "&e{name}"
+          - "{description}"
+```

@@ -2,6 +2,44 @@
 sidebar_position: 7
 ---
 
-# 任务重置
+# 重启条件
 
-此部分暂无说明。
+`restart` 组件通过 Kether 脚本定义任务的重启条件。列表中所有脚本都返回 `true` 时，任务才允许被重启。
+
+```yaml title="基础示例"
+quest_daily:
+  addon:
+    restart:
+      - 'check permission quest.daily.restart'
+```
+
+多个条件同时存在时，全部满足才能重启：
+
+```yaml title="多条件"
+quest_challenge:
+  addon:
+    restart:
+      - 'check permission challenge.redo'      # 需要有对应权限
+      - 'negative check player data banned'    # 没有被封禁标记
+```
+
+## 可用变量
+
+| 变量 | 说明 |
+|------|------|
+| `@QuestContainer` | 当前任务对象 |
+
+```yaml title="包含权限检查和数据检查"
+quest_ranked:
+  addon:
+    restart:
+      - 'check permission ranked.retry'             # 有重试权限
+      - 'negative check player data banned'         # 没有被封禁
+      - 'perm check player data retry_count < 3'   # 重试次数未超限
+```
+
+:::tip
+
+`restart` 组件只定义**何时允许重启**，实际的重启操作需要通过交互脚本或其他触发器来调用 `quest restart` 动作。没有配置此组件时，任务默认不允许重启。
+
+:::

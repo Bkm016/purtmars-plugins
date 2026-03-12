@@ -2,6 +2,35 @@
 sidebar_position: 4
 ---
 
-# 可选
+# 可选条目
 
-此部分暂无说明。
+`optional` 标记一个条目为可选，可选条目不影响任务的完成判定。
+
+```yaml title="必做与可选混合"
+some_quest:
+  task:
+    main_task:
+      objective: block break
+      condition:
+        material: diamond_ore
+      goal:
+        amount: 5
+      # 不配置 optional，默认必须完成
+
+    bonus_task:
+      addon:
+        optional: true         # 可选条目，完不完成都不影响任务
+      objective: block break
+      condition:
+        material: ancient_debris
+      goal:
+        amount: 1
+```
+
+任务完成时只检查非可选条目。`bonus_task` 完成了可以拿额外奖励，但不完成也不会卡住任务进度。
+
+:::tip
+
+可选条目适合用于支线目标、额外奖励或成就追踪，搭配 `action` 为其单独配置奖励即可。
+
+:::

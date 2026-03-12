@@ -4,4 +4,62 @@ sidebar_position: 9
 
 # 超时
 
-此部分暂无说明。
+`timeout` 组件用于给任务设置截止时间，超时后任务自动判定失败。
+
+支持两种模式：固定时长和固定时间点。
+
+## 固定时长
+
+从玩家接受任务的那一刻开始计时，到指定时长后超时。
+
+时间单位：`s`（秒）、`m`（分）、`h`（时）、`d`（天），可以组合使用。
+
+```yaml title="示例"
+quest_example:
+  addon:
+    timeout: "1h30m"  # 接受后 1 小时 30 分钟超时
+```
+
+```yaml title="更多写法"
+quest_a:
+  addon:
+    timeout: "7d"      # 7 天
+
+quest_b:
+  addon:
+    timeout: "30m"     # 30 分钟
+
+quest_c:
+  addon:
+    timeout: "1d12h"   # 1 天 12 小时
+```
+
+## 固定时间点
+
+按周期性时间点截止，不依赖接受时间。到达指定时间点时，所有仍在进行中的任务实例均判定失败。
+
+| 格式 | 说明 |
+|------|------|
+| `day <hour> <minute>` | 每天指定时刻 |
+| `week <day> <hour> <minute>` | 每周指定时刻，`day` 为 1-7（周一到周日） |
+| `month <day> <hour> <minute>` | 每月指定时刻，`day` 为 1-31 |
+
+```yaml title="示例"
+quest_daily:
+  addon:
+    timeout: "day 4 0"       # 每天凌晨 4:00 超时
+
+quest_weekly:
+  addon:
+    timeout: "week 1 4 0"    # 每周一凌晨 4:00 超时
+
+quest_monthly:
+  addon:
+    timeout: "month 1 4 0"   # 每月 1 日凌晨 4:00 超时
+```
+
+:::tip
+
+固定时间点模式适合配合 `restart` 组件使用，可以实现每日任务、每周任务等玩法。
+
+:::

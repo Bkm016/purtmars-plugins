@@ -2,6 +2,48 @@
 sidebar_position: 6
 ---
 
-# 变量重置
+# 接受时重置数据
 
-此部分暂无说明。
+`reset-data-on-accepted` 是一个布尔值标记，配合 `player_data` 类型的条目使用。开启后，玩家接受任务或任务重启时，会自动清除 `goal.key` 所指定的玩家数据。
+
+这在重复接取的任务中很有用——如果玩家上次的数据残留，可能导致条目立刻完成，加上这个标记可以避免这种情况。
+
+```yaml title="配合 player_data 条目"
+quest_daily_login:
+  task:
+    check_login_count:
+      objective: player_data  # 读取玩家数据的条目类型
+      goal:
+        key: login_count      # 读取/写入的数据键名
+        target: 7             # 目标值
+      addon:
+        reset-data-on-accepted: true  # 接取任务时清除 login_count 数据
+```
+
+:::tip
+
+这个组件只对 `player_data` 类型的条目生效，配置在其他类型的条目上不会有任何效果。
+
+:::
+
+## 触发时机
+
+- 玩家**接受**任务后
+- 任务**重启**后
+
+两种情况都会触发重置，确保每次开始任务时数据是干净的。
+
+```yaml title="配合重启组件使用"
+quest_weekly_challenge:
+  addon:
+    restart:
+      - 'check permission challenge.restart'
+  task:
+    score_task:
+      objective: player_data
+      goal:
+        key: weekly_score
+        target: 1000
+      addon:
+        reset-data-on-accepted: true  # 重启任务时同样会清零 weekly_score
+```
