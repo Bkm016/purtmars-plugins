@@ -94,7 +94,7 @@ Chemdah 的所有事件均继承自 TabooLib 的 `BukkitProxyEvent`，通过 `@S
 | `InferEntityHookEvent` | `id: String`, `entityClass` | 注册自定义实体识别器 |
 | `InferBlockHookEvent` | `id: String`, `blockClass` | 注册自定义方块识别器 |
 | `InferItemHookEvent` | `id: String`, `itemClass` | 注册自定义物品识别器 |
-| `PartyHookEvent` | `id: String`, `partyClass` | 注册自定义队伍实现 |
+| `PartyHookEvent` | `plugin: String`, `party: Party?` | 注册自定义队伍实现 |
 | `PlaceholderHookEvent` | `player`, `profile`, `identifier: String`, `parameter: String`, `result` | 注册自定义 Placeholder 处理器 |
 
 ## 监听示例

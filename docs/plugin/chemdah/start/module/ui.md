@@ -14,8 +14,8 @@ sidebar_position: 5
 
 ```yaml title="ui.yml 基本结构"
 main:                          # UI id
-  name: "&8任务列表 &7第 %page% 页"
-  name-filter: "&8任务分类 &7第 %page% 页"
+  name: "&8任务列表 &7第 {page} 页"
+  name-filter: "&8任务分类 &7第 {page} 页"
 
   menu:
     quest:

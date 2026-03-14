@@ -176,6 +176,7 @@ theme-chat:
   hover-text: true
   space-line: 30
   space-filling: 5
+  close-distance: 0.5           # 玩家移动超过此距离后自动关闭对话
   reply-interaction:
     - SWAP
   use-scroll: false

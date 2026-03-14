@@ -158,7 +158,7 @@ conversation_id:
     - "NO_EFFECT:SOUND"
     # 仅禁用粒子
     - "NO_EFFECT:PARTICLE"
-    # NPC 转向面对玩家（需要 Adyeshach）
+    # NPC 转向面对玩家（支持 Adyeshach、Citizens、MythicMobs）
     - LOOK_PLAYER
     # 强制玩家视角转向 NPC
     - FORCE_LOOK

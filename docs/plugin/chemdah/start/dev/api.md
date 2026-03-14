@@ -87,7 +87,7 @@ fun handleQuest(player: Player) {
 
     // 检查接受条件（不实际接受）
     template.checkAccept(profile).thenAccept { result ->
-        if (result.type.isSuccess) {
+        if (result.type == AcceptResult.Type.SUCCESSFUL) {
             // 接受任务
             template.acceptTo(profile)
         }

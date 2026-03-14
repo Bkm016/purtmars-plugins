@@ -6,7 +6,7 @@ sidebar_position: 1
 
 对话文件放在 `Chemdah/core/conversation/` 目录下，支持 `.yml`、`.yaml`、`.json`、`.toml` 格式，可以用子目录分类管理。
 
-一个文件里可以定义多个对话节点，每个节点是一个独立的 key。`__option__` 是文件级全局设置，不会被当作对话节点加载。
+一个文件里可以定义多个对话节点，每个节点是一个独立的 key。`__option__` 是文件级全局设置，不会被当作对话节点加载。每个对话节点也可以有自己的 `flags:` 字段，会与 `global-flags` 合并生效。
 
 ## 基本结构
 
@@ -42,6 +42,7 @@ greeting:
 | `theme` | 对话主题（`chat` / `chest`） | `chat` |
 | `title` | NPC 名称 | `NPC` |
 | `global-flags` | 全局标签，对文件内所有对话生效 | 空 |
+| `agent` | 全局代理脚本，合并到所有对话中 | 空 |
 
 ## NPC 台词
 
@@ -77,8 +78,9 @@ player:
 
 | 字段 | 说明 |
 |------|------|
-| `if` | Kether 表达式，为 false 时选项不显示 |
+| `if` | Kether 表达式，为 false 时选项不显示（`condition` 也可以） |
 | `reply` | 回复文本，支持颜色代码和 Kether 内联脚本 |
+| `format` | 回复格式名，关联主题中的自定义回复格式 |
 | `then` | 同步执行的 Kether 脚本，执行完毕后对话关闭 |
 | `then-async` | 异步执行的 Kether 脚本，与 `then` 同时触发但不阻塞 |
 | `unique` | 唯一 ID，选过之后永不再显示此选项 |

@@ -35,7 +35,7 @@ my_quest:
 |--------|----------|--------|
 | `accept` | 接受任务前（含所有前置检测） | 是 |
 | `accepted` | 接受任务后 | 否 |
-| `accept-cancelled` | 接受被取消后 | 否 |
+| `accept_cancelled` | 接受被取消后 | 否 |
 | `fail` | 任务失败前 | 是 |
 | `failed` | 任务失败后 | 否 |
 | `complete` | 任务完成前 | 是 |
@@ -115,8 +115,8 @@ my_quest:
 | 变量 | 说明 |
 |------|------|
 | `sender` | 触发该代理的玩家 |
-| `@QuestContainer` | 当前任务的 ID |
-| `@QuestSelected` | 同上，用于 Kether 函数中选定任务 |
+| `@QuestContainer` | 当前任务的 QuestContainer 对象 |
+| `@QuestSelected` | 当前任务节点的 ID（字符串） |
 
 ```yaml title="完整示例"
 diamond_quest:

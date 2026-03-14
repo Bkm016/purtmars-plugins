@@ -6,18 +6,18 @@ sidebar_position: 2
 
 追踪代理不是独立的代理类型，而是追踪组件提供的脚本扩展能力。
 
-追踪组件通过 Kether 脚本处理其描述文本——在 `track.description` 字段中可以直接写 Kether 表达式，运行时会求值后渲染到记分板或地标上。
+追踪组件通过 Kether 脚本处理其描述文本——在 `track.description` 字段中写入纯文本描述，在 `scoreboard-option.content` 或 `landmark-option.content` 中通过变量引用。
 
 ```yaml title="在描述中使用 Kether 变量"
 my_quest:
   meta:
     name: 矿工的使命
-  track:
-    center: "world 100 64 100"
-    name: "前往矿洞"
-    description:
-      - "目标: {distance} 格外"   # {distance} 由追踪系统自动替换
-      - "任务: {name}"            # {name} 为任务名称
+  addon:
+    track:
+      center: "world 100 64 100"
+      name: "前往矿洞"
+      description:
+        - "前往矿洞开采铁矿石"
 ```
 
 追踪状态变化（开始追踪、取消追踪）会通过事件系统通知，但不对应任何单独的 `agent:` 节点，无需额外配置。
@@ -32,9 +32,10 @@ my_quest:
 
 ```yaml title="追踪开始提示"
 my_quest:
-  track:
-    center: "world 100 64 100"
-    message: "开始追踪，目标已标记在地图上。"  # 玩家开启追踪时显示
+  addon:
+    track:
+      center: "world 100 64 100"
+      message: "开始追踪，目标已标记在地图上。"  # 玩家开启追踪时显示
 ```
 
 任务接受、完成等时机的逻辑仍通过[任务级代理](quest)处理，追踪本身不额外提供钩子。

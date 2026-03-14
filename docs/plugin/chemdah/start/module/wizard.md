@@ -52,11 +52,11 @@ guide_to_village:
 在任务脚本或对话脚本中，通过 `wizard` 动作启动引导：
 
 ```yaml title="对话脚本中启动向导"
-# 启动向导，参数为：向导 id、NPC id
-wizard start "guide_to_village" entity "npc_guide_001"
+# 启动向导，NPC 通过上下文中的 @entities 变量传入
+wizard to "guide_to_village"
 
-# 等待引导完成后继续执行
-wizard await "guide_to_village"
+# 取消当前向导
+wizard cancel
 ```
 
 :::tip

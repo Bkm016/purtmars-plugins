@@ -10,7 +10,7 @@ sidebar_position: 8
 
 ## 工作原理
 
-每个演出配置包含若干 `state`（状态），每个状态定义一组方块替换规则。通过脚本动作发送（`scenes send`）或撤销（`scenes cancel`）对特定玩家生效。方块变化仅在客户端，服务端世界不变。
+每个演出配置包含若干 `state`（状态），每个状态定义一组方块替换规则。通过 `scenes file` 脚本动作对特定玩家发送或撤销演出效果。方块变化仅在客户端，服务端世界不变。
 
 ## 配置示例
 
@@ -58,10 +58,10 @@ chest_scene:
 
 ```yaml title="任务脚本中使用演出方块"
 # 对玩家发送演出（显示状态 0）
-scenes send "hidden_passage" state 0
+scenes file "hidden_passage" state 0
 
-# 撤销演出（恢复原始方块）
-scenes cancel "hidden_passage"
+# 撤销演出（恢复状态 0 的方块变化）
+scenes file "hidden_passage" cancel 0
 ```
 
 ## 关联事件

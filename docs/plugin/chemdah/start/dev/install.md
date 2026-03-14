@@ -93,15 +93,15 @@ import taboolib.common.platform.event.SubscribeEvent
 object QuestListener {
 
     @SubscribeEvent
-    fun onQuestComplete(e: QuestEvents.Complete) {
-        val player = e.profile.player ?: return
+    fun onQuestComplete(e: QuestEvents.Complete.Post) {
+        val player = e.playerProfile.player ?: return
         val questId = e.quest.id
         player.sendMessage("任务完成: $questId")
     }
 
     @SubscribeEvent
-    fun onQuestAccept(e: QuestEvents.Accept) {
-        val player = e.profile.player ?: return
+    fun onQuestAccept(e: QuestEvents.Accept.Post) {
+        val player = e.playerProfile.player ?: return
         player.sendMessage("接受任务: ${e.quest.id}")
     }
 }
