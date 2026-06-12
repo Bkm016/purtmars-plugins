@@ -1,0 +1,17 @@
+{
+  "title": "任务组件",
+  "pages": [
+    "automation",
+    "control",
+    "depend",
+    "optional",
+    "party",
+    "reset_data_on_accepted",
+    "restart",
+    "stats",
+    "timeout",
+    "track",
+    "ui"
+  ],
+  "defaultOpen": false
+}

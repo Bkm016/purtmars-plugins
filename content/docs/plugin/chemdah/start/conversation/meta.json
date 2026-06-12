@@ -1,0 +1,10 @@
+{
+  "title": "创建对话",
+  "pages": [
+    "agent",
+    "main",
+    "theme_chat",
+    "theme_chest"
+  ],
+  "defaultOpen": false
+}

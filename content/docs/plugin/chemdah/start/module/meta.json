@@ -1,0 +1,15 @@
+{
+  "title": "拓展模块",
+  "pages": [
+    "generator",
+    "level",
+    "main",
+    "party",
+    "scenes",
+    "script",
+    "synchronous",
+    "ui",
+    "wizard"
+  ],
+  "defaultOpen": false
+}

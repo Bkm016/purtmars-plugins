@@ -1,0 +1,9 @@
+{
+  "title": "进阶功能",
+  "pages": [
+    "controller",
+    "script",
+    "skin"
+  ],
+  "defaultOpen": false
+}

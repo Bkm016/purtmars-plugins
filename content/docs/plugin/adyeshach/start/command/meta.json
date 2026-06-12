@@ -1,0 +1,11 @@
+{
+  "title": "主要命令",
+  "pages": [
+    "editor",
+    "entity",
+    "other",
+    "script",
+    "structure"
+  ],
+  "defaultOpen": false
+}

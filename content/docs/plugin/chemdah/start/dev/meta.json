@@ -1,0 +1,9 @@
+{
+  "title": "开发文档",
+  "pages": [
+    "api",
+    "events",
+    "install"
+  ],
+  "defaultOpen": false
+}

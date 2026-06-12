@@ -1,0 +1,11 @@
+{
+  "title": "技术文档",
+  "pages": [
+    "controller",
+    "manager",
+    "meta",
+    "tags",
+    "traits"
+  ],
+  "defaultOpen": false
+}

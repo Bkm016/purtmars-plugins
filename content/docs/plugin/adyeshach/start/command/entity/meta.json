@@ -1,0 +1,16 @@
+{
+  "title": "单位管理",
+  "pages": [
+    "clone",
+    "create",
+    "list",
+    "look",
+    "move",
+    "passenger",
+    "remove",
+    "rename",
+    "tp",
+    "undo"
+  ],
+  "defaultOpen": false
+}

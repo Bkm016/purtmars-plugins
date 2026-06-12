@@ -1,0 +1,83 @@
+---
+title: "解释器 (进阶)"
+sidebar_position: 4
+---
+
+
+# 解释器 (进阶)
+
+本文主要针对 `Entity`, `Material`, `ItemStack` 三种解释器的 **共同特性** 进行解释说明。
+
+```text
+(%namespace%:)%key%[%data%=%value%]
+```
+
+```text
+chest ················ 任意箱子
+chest[type=SINGLE] ··· 单体箱子（基于 BlockData 需要 1.13+ 才可以使用）
+```
+
+## KeyFlags
+
+除了这些直接写出来的方式，还可以使用 **特殊规则**，以 `ItemStack` 为例：
+
+| 规则              | 说明   | 示例                    |
+|-----------------|------|-----------------------|
+| <code>^</code>  | 前缀判定 | <code>^diamond</code> |
+| <code>$</code>  | 后缀判定 | <code>sword$</code>   |
+| <code>()</code> | 包含   | <code>(sword)</code>  |
+| <code>*</code>  | 所有   | <code>*</code>        |
+
+没看懂? 举个例子：
+
+```
+sword$[name=傻逼] ······· 以 "sword" 结尾的物品类型，且名字中包含 "傻逼"。
+```
+
+## DataMatch
+
+`[]` 中括号内的内容就是 DataMatch，用来对物品、实体、方块的 **属性** 进行精确匹配。格式是 `属性名 运算符 值`，多个条件用逗号隔开。
+
+```text
+%key%[%attr%%op%%value%, %attr%%op%%value%, ...]
+```
+
+支持的运算符如下：
+
+| 运算符 | 含义   | 示例              |
+|-----|------|-----------------|
+| `=` | 等于   | `name=钻石剑`      |
+| `!=` | 不等于  | `type!=SINGLE`  |
+| `>` | 大于   | `durability>10` |
+| `<` | 小于   | `durability<50` |
+| `>=` | 大于等于 | `amount>=5`     |
+| `<=` | 小于等于 | `amount<=64`    |
+| `(值1\|值2)` | 包含于集合 | `type(CHEST\|BARREL)` |
+
+<Callout type="info">
+
+`(值1|值2)` 语法表示"值等于其中任意一个"，等价于 IN 判断。分隔符支持 `|` 和 `/`。
+
+</Callout>
+
+字符串比较时，在值前加 `#` 前缀可以 **忽略颜色代码** 进行比较：
+
+```text
+diamond_sword[name=#钻石剑]
+```
+
+实际使用示例：
+
+```yaml
+# 匹配名字叫"钻石剑"、耐久大于 100 的钻石剑
+condition:
+  item: diamond_sword[name=钻石剑,durability>100]
+
+# 匹配单体或陷阱箱子
+condition:
+  material: chest[type(SINGLE|TRAPPED)]
+
+# 匹配不是末影人的实体
+condition:
+  entity: '*[type!=ENDERMAN]'
+```

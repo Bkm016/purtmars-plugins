@@ -1,0 +1,13 @@
+{
+  "title": "任务条目",
+  "pages": [
+    "find",
+    "parser",
+    "parser_advance",
+    "parser_entity",
+    "parser_item",
+    "parser_material",
+    "type"
+  ],
+  "defaultOpen": false
+}

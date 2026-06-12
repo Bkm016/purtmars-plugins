@@ -1,0 +1,13 @@
+{
+  "title": "主要命令",
+  "pages": [
+    "api",
+    "data",
+    "level",
+    "main",
+    "quest",
+    "script",
+    "var"
+  ],
+  "defaultOpen": false
+}

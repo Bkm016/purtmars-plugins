@@ -1,0 +1,13 @@
+{
+  "title": "单位编辑",
+  "pages": [
+    "controller",
+    "edit-shell",
+    "edit",
+    "move",
+    "private-meta",
+    "public-meta",
+    "public-traits"
+  ],
+  "defaultOpen": false
+}

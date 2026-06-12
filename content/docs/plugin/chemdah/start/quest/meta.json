@@ -1,0 +1,10 @@
+{
+  "title": "创建任务",
+  "pages": [
+    "addon",
+    "agent",
+    "main",
+    "task"
+  ],
+  "defaultOpen": false
+}

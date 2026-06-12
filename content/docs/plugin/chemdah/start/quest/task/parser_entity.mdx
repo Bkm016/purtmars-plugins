@@ -1,0 +1,59 @@
+---
+title: "解释器 (实体)"
+sidebar_position: 7
+---
+
+
+# 解释器 (实体)
+
+<Callout type="info">
+
+推荐优先阅读 [解释器 (进阶)](parser_advance)，更有用。
+
+</Callout>
+
+## Minecraft
+
+原版生物，仅支持 `name` 参数。
+
+```text
+zombie[name=傻逼] ············ 名字为 "傻逼" 的僵尸
+```
+
+## Citizens
+
+Citizens 单位，支持 `type`, `name`。
+
+```text
+citizens:1
+citizens:1[name=傻逼]
+```
+
+<Callout type="info">
+
+注意，非原版不可省略命名空间，如 `citizens`。
+
+</Callout>
+
+## MythicMobs
+
+MythicMobs 怪物，支持 `type`, `name`, `level`, `stance`, `faction` 或从配置中读取数据。
+
+```text
+mythicmobs:SkeletalKnight
+mythicmobs:SkeletalKnight[name=傻逼]
+```
+
+### 判定配置文件中的数据
+
+```text
+mythicmobs:SkeletalKnight[Damage>10]
+```
+
+```yaml
+SkeletalKnight:
+  Type: WITHER_SKELETON
+  Display: '&aSkeletal Knight'
+  Health: 40
+  Damage: 8
+```
