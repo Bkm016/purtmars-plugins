@@ -1,9 +1,17 @@
 {
-  "title": "开发文档",
+  "title": "开发",
   "pages": [
+    "install",
     "api",
-    "events",
-    "install"
+    "---扩展---",
+    "objective",
+    "player-inventory",
+    "---存储---",
+    "persistent-data-container",
+    "persistence-key-codecs",
+    "database",
+    "---事件---",
+    "events"
   ],
   "defaultOpen": false
 }

@@ -6,7 +6,13 @@ sidebar_position: 100
 
 # 任务 Schema
 
-完整的任务配置字段参考。所有字段均已标注类型、默认值和使用说明。
+完整的任务 YAML 字段参考（与 `Chemdah/core/quest` 下示例结构一致）。入门说明见 [任务结构](./quest/main)；`addon` 分项见 [任务组件](./quest/addon/control) 等章节；`agent` 见 [代理脚本](./quest/agent/quest)；条目 `condition` / `goal` 见 [条目类型](./quest/task/type)。
+
+<Callout type="info">
+
+条目类型字段名为 **`objective`**（不是 `type`）。游戏中可用 `/chemdah objective <关键词>` 查看已注册类型及条件键；附属插件自定义类型见 [开发 · 自定义目标](./dev/objective)。
+
+</Callout>
 
 ## 文件级选项
 
@@ -26,10 +32,11 @@ __option__:
 
   # 是否记录条目完成时间
   # 记录到 user_data 表，key: quest.complete.<id>.<task_id>
-  record-task-completed: true
+  # 默认 false；未写时可用 record-completed 作为后备
+  record-task-completed: false
 
   # 兼容旧配置的字段
-  # 同时作为 record-quest-completed 和 record-task-completed 的后备值
+  # 同时作为 record-quest-completed / record-task-completed 的后备值
   record-completed: true
 ```
 
@@ -51,8 +58,8 @@ quest_id:
   # 是否记录任务完成时间
   record-quest-completed: true
 
-  # 是否记录条目完成时间
-  record-task-completed: true
+  # 是否记录条目完成时间（默认同 __option__，通常 false）
+  record-task-completed: false
 
   # 兼容旧字段（后备值）
   record-completed: true
@@ -80,8 +87,8 @@ quest_id:
     # 条目 ID（同一任务内唯一）
     task_id:
 
-      # 条目类型（必填）
-      # 在游戏中使用 /chemdah objective 查看可用类型
+      # 条目类型（必填，键名 objective）
+      # /chemdah objective <关键词> 查看类型、condition / goal 键
       # 常见类型：
       #   block break          破坏方块
       #   block place          放置方块
@@ -109,6 +116,7 @@ quest_id:
       # 值支持分号分隔的列表语法：material: "iron_ore;gold_ore"
       condition:
         material: iron_ore
+        # 可选：condition.$ 为 Kether 脚本条件（与具体 objective 的键并列）
 
       # 完成目标
       # 计数器类型默认支持 amount（触发次数）
@@ -521,3 +529,13 @@ quest_id:
 代理键名解析规则：转为大写后，空格和冒号替换为下划线。因此 `accept_cancelled` 和 `accept cancelled` 等价，但连字符 `-` 不会被替换（`accept-cancelled` 无效）。
 
 </Callout>
+
+## 相关文档
+
+| 主题 | 链接 |
+| --- | --- |
+| 最小示例与 meta | [任务结构](./quest/main) |
+| control / track / ui 等细节 | [任务组件](./quest/addon/control)（侧栏「任务组件」） |
+| agent 脚本与 @restrict | [代理脚本](./quest/agent/quest) |
+| 各 objective 的 condition | [条目类型](./quest/task/type) |
+| 数据隔离与库表 | [开发 · 自定义数据库](./dev/database)、[存档键映射](./dev/persistence-key-codecs) |

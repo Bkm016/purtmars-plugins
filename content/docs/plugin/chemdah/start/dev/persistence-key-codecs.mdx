@@ -1,0 +1,128 @@
+---
+title: "存档键映射"
+sidebar_position: 5
+---
+
+
+# 存档键映射
+
+<Callout type="warn">
+
+本文由 AI 辅助生成，可能存在疏漏或与当前版本不一致。Chemdah 为闭源付费插件，请以你使用的版本、`api` 依赖与实际运行行为为准；疑问请联系作者或售后群（见 [服务](/plugin/chemdah/service)）。
+
+</Callout>
+
+关系型数据库（`user_data`、`quest_data`、`variables` 等表）落库时，Chemdah 在内存与脚本里始终使用**逻辑键**（例如 `quest.complete.xxx`、`level`）。若需要在库里使用另一套**存储键**（加前缀、按表区分命名等），可实现 `PersistenceKeyCodec` 并通过 `PersistenceKeyCodecs` 注册。
+
+未注册任何实现时，逻辑键与库表键一致，行为与旧版相同。
+
+## 适用场景
+
+- 多插件共用同一数据库，希望 Chemdah 的键带统一前缀，避免与其它表的 `key` 冲突。
+- 运维侧按前缀批量检索或迁移数据。
+- 仅对某一类数据（例如只改玩家档案）做映射，任务键、全局变量键保持原样。
+
+<Callout type="info">
+
+仅影响内置 SQL/SQLite 等关系型实现（`DatabaseSQL`、`DatabaseSQLite` 及其子类）。若整库替换为自定义 `Database` 实现，是否走本 API 由该实现自行决定。
+
+</Callout>
+
+## 键空间
+
+| 枚举 | 对应数据 |
+| --- | --- |
+| `PLAYER` | 玩家档案持久化数据（`playerProfile.persistentDataContainer` 等） |
+| `QUEST` | 任务实例相关键 |
+| `VARIABLE` | 全局变量 |
+
+三套键空间相互独立，同一逻辑名在不同 scope 下可以映射到不同的存储键，注册实现时请按 scope 分支处理。
+
+## 注册时机
+
+在附属插件 `onLoad` / `onEnable` 中注册即可，需早于玩家进服、且早于 Chemdah 完成数据库初始化。
+
+```kotlin
+import ink.ptms.chemdah.api.PersistenceKeyCodec
+import ink.ptms.chemdah.api.PersistenceKeyCodecs
+import ink.ptms.chemdah.api.PersistenceScope
+
+class PlayerKeyPrefix(private val prefix: String) : PersistenceKeyCodec {
+
+    override fun encode(scope: PersistenceScope, logicalKey: String): String {
+        if (scope != PersistenceScope.PLAYER) {
+            return logicalKey
+        }
+        return prefix + logicalKey
+    }
+
+    override fun decode(scope: PersistenceScope, storageKey: String): String? {
+        if (scope != PersistenceScope.PLAYER) {
+            return storageKey
+        }
+        if (!storageKey.startsWith(prefix)) {
+            return null
+        }
+        return storageKey.removePrefix(prefix)
+    }
+}
+
+override fun onEnable() {
+    PersistenceKeyCodecs.register(PlayerKeyPrefix("p:"))
+}
+```
+
+也可使用 `Chemdah.registerPersistenceKeyCodec(codec)`，内部同样调用 `PersistenceKeyCodecs.register`。
+
+上例中逻辑键 `level` 写入库表为 `p:level`；Kether、脚本与 `persistentDataContainer["level"]` 仍使用 `level`。
+
+## 按 scope 使用不同前缀
+
+```kotlin
+object MyCodec : PersistenceKeyCodec {
+
+    override fun encode(scope: PersistenceScope, logicalKey: String): String {
+        return when (scope) {
+            PersistenceScope.PLAYER -> "u/$logicalKey"
+            PersistenceScope.QUEST -> "q/$logicalKey"
+            PersistenceScope.VARIABLE -> "g/$logicalKey"
+        }
+    }
+
+    override fun decode(scope: PersistenceScope, storageKey: String): String? {
+        val p = when (scope) {
+            PersistenceScope.PLAYER -> "u/"
+            PersistenceScope.QUEST -> "q/"
+            PersistenceScope.VARIABLE -> "g/"
+        }
+        if (!storageKey.startsWith(p)) {
+            return null
+        }
+        return storageKey.removePrefix(p)
+    }
+}
+```
+
+## API 说明
+
+| 方法 | 说明 |
+| --- | --- |
+| `PersistenceKeyCodecs.register(codec)` | 注册实现；后注册者覆盖前者 |
+| `PersistenceKeyCodecs.encode(scope, logicalKey)` | 逻辑键 → 库表键（内部在 INSERT/UPDATE 前调用） |
+| `PersistenceKeyCodecs.decode(scope, storageKey)` | 库表键 → 逻辑键（内部在 SELECT 后调用） |
+
+一般业务代码只需实现并注册 `PersistenceKeyCodec`，无需直接调用 `encode` / `decode`。
+
+`decode` 返回 `null` 时，Chemdah 会把读到的存储键**原样**当作逻辑键加载，用于兼容历史上未带前缀的旧数据。
+
+## 注意事项
+
+- 库表 `key` / `name` 列长度通常为 **64**，`encode` 结果过长会导致落库失败，请在实现中控制长度或制定截断策略。
+- 上线后修改映射规则时，库里已有行仍是旧存储键；无法识别的键会按上文兼容逻辑加载。若要彻底改名，需自行编写数据迁移脚本。
+- 同一时间仅有一个生效的 `PersistenceKeyCodec`（TabooLib `PlatformFactory` 注册），不要在多个插件里互相覆盖而不自知。
+
+## 相关类型
+
+- `ink.ptms.chemdah.api.PersistenceKeyCodecs` — 注册与编解码入口
+- `ink.ptms.chemdah.api.PersistenceKeyCodec` — 自定义映射接口
+- `ink.ptms.chemdah.api.PersistenceScope` — 键空间枚举

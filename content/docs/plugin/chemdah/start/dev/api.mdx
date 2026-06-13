@@ -1,12 +1,18 @@
 ---
 title: "API 参考"
-sidebar_position: 3
+sidebar_position: 2
 ---
 
 
 # API 参考
 
-`ChemdahAPI` 是插件的主要入口，所有核心功能都从这里获取。
+<Callout type="warn">
+
+本文由 AI 辅助生成，可能存在疏漏或与当前版本不一致。Chemdah 为闭源付费插件，请以你使用的版本、`api` 依赖与实际运行行为为准；疑问请联系作者或售后群（见 [服务](/plugin/chemdah/service)）。
+
+</Callout>
+
+`ChemdahAPI` 是查询与运行时操作的主入口；持久化扩展、存档键映射等见 [自定义数据库](./database)、[存档键映射](./persistence-key-codecs)。事件列表见 [事件参考](./events)。
 
 ## 扩展属性
 
@@ -21,7 +27,7 @@ sidebar_position: 3
 
 <Callout type="info">
 
-`chemdahProfile` 是异步加载的。玩家刚进入服务器时数据可能还没就绪，使用前务必检查 `isChemdahProfileLoaded`，否则会抛出 `NullPointerException`。
+`chemdahProfile` 默认在进服后异步加载（见 `Database.isLoadInJoinEvent`）。玩家刚进入服务器时数据可能还没就绪，使用前务必检查 `isChemdahProfileLoaded`。若接管了自定义数据库与加载时机，应在角色数据就绪且已触发 `PlayerEvents.Selected` 后再访问。
 
 </Callout>
 
@@ -31,48 +37,106 @@ sidebar_position: 3
 | --- | --- |
 | `Player.callTrigger(value: String)` | 手动触发 `trigger` 类型条目，先触发 `PlayerEvents.Trigger` 事件 |
 
-## ChemdahAPI 对象方法
+## 查询与运行时
 
 | 方法 | 返回值 | 说明 |
 | --- | --- | --- |
 | `getQuestTemplate(id)` | `Template?` | 获取任务模板 |
+| `getQuestTemplateGroup(id)` | `TemplateGroup?` | 获取任务模板组 |
 | `getConversation(id)` | `Conversation?` | 获取已注册的对话 |
 | `getConversationTheme(id)` | `Theme<*>?` | 获取对话主题 |
 | `getQuestObjective(id)` | `Objective<*>?` | 获取任务目标类型 |
-| `getVariable(key)` | `String?` | 读取全局变量 |
+| `getQuestMeta(id)` | `Class<out Meta<*>>?` | 获取任务元数据类型 |
+| `getQuestAddon(id)` | `Class<out Addon>?` | 获取任务组件类型 |
+| `getModule(kClass)` | `Module` | 获取功能模块，不存在时抛异常 |
+| `getVariable(key)` | `String?` | 读取全局变量（经当前 `Database`） |
 | `setVariable(key, value, append, default)` | `Unit` | 设置全局变量，`value` 为 null 时删除 |
 | `getVariables()` | `List<String>` | 获取所有全局变量的 key 列表 |
 | `invokeKether(source, player, vars)` | `CompletableFuture<Any?>` | 异步执行 Kether 脚本 |
 | `parseFunction(source, player, vars)` | `String` | 解析 Kether 行内函数 |
-| `reloadAll()` | `Unit` | 重载所有配置（对话、任务、模块等） |
+| `reloadAll()` | `Unit` | 重载语言、配置、对话、任务、模块等 |
 
-## PlayerProfile 常用方法
+## 运行时注册
 
-`PlayerProfile` 是玩家数据的核心载体，通过 `player.chemdahProfile` 获取。
+| 方法 | 说明 |
+| --- | --- |
+| `addConversation(id, con)` | 注册对话 |
+| `addConversationTheme(id, theme)` | 注册对话主题 |
+| `addQuestTemplate(id, template)` | 注册任务模板 |
+| `addQuestTemplateGroup(id, group)` | 注册任务模板组 |
+| `addQuestMeta(id, meta)` | 注册任务元数据类型 |
+| `addQuestAddon(id, addon)` | 注册任务组件类型 |
+| `addQuestObjective(id, objective)` | 注册任务目标（第三方建议用 `Objective.register()`） |
+
+内置注册表（`conversation`、`questTemplate`、`questObjective`、`questMeta`、`questAddon`、`questTemplateGroup`、`conversationTheme` 等）在 **key 重复** 时自定义 `put` 会警告并返回 null（不覆盖）。**`playerProfile`** 为在线档案缓存，key 为 **`player.name`**，重复 `put` 仍会覆盖旧值并打 info 日志。
+
+## 插件入口
+
+| 方法 | 说明 |
+| --- | --- |
+| `Chemdah.registerDatabaseImpl(database)` | 注册自定义 `Database` 实现，详见 [自定义数据库](./database) |
+| `Chemdah.registerPersistenceKeyCodec(codec)` | 注册 `PersistenceKeyCodec`，等同 `PersistenceKeyCodecs.register` |
+
+## 档案生命周期
+
+`ink.ptms.chemdah.core.database.Database` 负责 `PlayerProfile` 落盘；完整契约与自管加载见 [自定义数据库](./database)。
+
+| API | 说明 |
+| --- | --- |
+| `Database.INSTANCE` | 当前持久化实现（SQLite/SQL 或自定义） |
+| `Database.loadProfile(player)` | 读档 → `validation` → 写入 `playerProfile` → `PlayerEvents.Selected` |
+| `Database.releaseProfile(player)` | 触发 `PlayerEvents.Released` 并等待异步收尾 |
+| `Database.isLoadInJoinEvent` | 是否在 Join 后自动 `loadProfile` |
+| `Database.isReleaseInQuitEvent` | 是否在 Quit 时自动 `releaseProfile` |
+| `Database.isDisableAutoSave` | 为 true 时关闭周期保存与 `Released` 后的 `push` |
+
+## 存档键 API
+
+关系型内置库在落库前对键名编解码；业务侧通常只需实现 `PersistenceKeyCodec` 并注册。详见 [存档键映射](./persistence-key-codecs)。
+
+| 方法 | 说明 |
+| --- | --- |
+| `PersistenceKeyCodecs.register(codec)` | 注册映射实现 |
+| `PersistenceKeyCodecs.encode(scope, logicalKey)` | 逻辑键 → 库表键（一般由 Chemdah 内部调用） |
+| `PersistenceKeyCodecs.decode(scope, storageKey)` | 库表键 → 逻辑键 |
+
+## PlayerProfile
+
+通过 `player.chemdahProfile` 获取。
 
 | 方法 | 返回值 | 说明 |
 | --- | --- | --- |
-| `getQuests(openAPI)` | `List<Quest>` | 获取所有进行中的任务，`openAPI = true` 时包含内部任务 |
-| `getQuestById(id, openAPI)` | `Quest?` | 按 id 获取任务，未接受返回 null |
-| `isQuestCompleted(id)` | `Boolean` | 检查任务是否已完成 |
-| `persistentDataContainer` | `DataContainer` | 持久化数据容器，用于读写玩家自定义数据 |
+| `getQuests(openAPI)` | `List<Quest>` | 进行中的任务，`openAPI = true` 时包含内部任务 |
+| `getQuestById(id, openAPI)` | `Quest?` | 按 id 获取任务 |
+| `isQuestCompleted(id)` / `isQuestCompleted(template)` | `Boolean` | 是否已完成 |
+| `getQuestCompletedDate(questId)` | `Long` | 任务完成时间戳 |
+| `getQuestTaskCompleteDate(questId, taskId)` | `Long` | 条目完成时间戳 |
+| `persistentDataContainer` | `DataContainer` | 玩家级持久化键值，详见 [持久化数据容器](./persistent-data-container) |
+| `validation()` | `Unit` | 校验任务合法性（读档后应调用） |
+| `push()` / `push(player)` | `Unit` | `isDataChanged` 时写回 `Database.update` 并处理 `releaseQuests` |
+
+## 档案事件
+
+| 事件 | 时机 |
+| --- | --- |
+| `PlayerEvents.Selected` | 档案进入缓存且可供 `chemdahProfile` 使用 |
+| `PlayerEvents.Updated` | `push` 写盘成功后 |
+| `PlayerEvents.Released` | 玩家数据释放流程开始（退服或自定义卸载） |
+
+更多事件见 [事件参考](./events)。
 
 ## 代码示例
 
 ```kotlin
 import ink.ptms.chemdah.api.ChemdahAPI.chemdahProfile
 import ink.ptms.chemdah.api.ChemdahAPI.isChemdahProfileLoaded
+import ink.ptms.chemdah.api.event.collect.PlayerEvents
+import taboolib.common.platform.event.SubscribeEvent
 
-fun onPlayerJoin(player: Player) {
-    if (!player.isChemdahProfileLoaded) return
-
-    val profile = player.chemdahProfile
-    val container = profile.persistentDataContainer
-
-    // 读取数据
+@SubscribeEvent
+fun onSelected(e: PlayerEvents.Selected) {
+    val container = e.playerProfile.persistentDataContainer
     val kills = container["total_kills"]?.toString()?.toIntOrNull() ?: 0
-
-    // 写入数据
     container["total_kills"] = (kills + 1).toString()
 }
 ```
@@ -82,30 +146,16 @@ import ink.ptms.chemdah.api.ChemdahAPI
 import ink.ptms.chemdah.api.ChemdahAPI.chemdahProfile
 
 fun handleQuest(player: Player) {
+    if (!player.isChemdahProfileLoaded) return
     val profile = player.chemdahProfile
-
-    // 获取任务模板
     val template = ChemdahAPI.getQuestTemplate("main_quest_01") ?: return
-
-    // 检查接受条件（不实际接受）
     template.checkAccept(profile).thenAccept { result ->
         if (result.type == AcceptResult.Type.SUCCESSFUL) {
-            // 接受任务
             template.acceptTo(profile)
         }
     }
-
-    // 获取进行中的任务
     val quest = profile.getQuestById("main_quest_01") ?: return
-
-    // 完成任务
     quest.completeQuest()
-
-    // 失败任务
-    quest.failQuest()
-
-    // 重置任务
-    quest.restartQuest()
 }
 ```
 
@@ -113,7 +163,6 @@ fun handleQuest(player: Player) {
 import ink.ptms.chemdah.api.ChemdahAPI.callTrigger
 
 fun onPlayerCraft(player: Player) {
-    // 唤起所有监听 "player_crafted" 的 trigger 条目
     player.callTrigger("player_crafted")
 }
 ```
@@ -122,16 +171,9 @@ fun onPlayerCraft(player: Player) {
 import ink.ptms.chemdah.api.ChemdahAPI
 
 fun globalVarExample() {
-    // 读取
     val count = ChemdahAPI.getVariable("server_event_count")?.toIntOrNull() ?: 0
-
-    // 写入
     ChemdahAPI.setVariable("server_event_count", (count + 1).toString())
-
-    // 追加（数值累加）
     ChemdahAPI.setVariable("server_kill_total", "1", append = true, default = "0")
-
-    // 删除
     ChemdahAPI.setVariable("temp_key", null)
 }
 ```

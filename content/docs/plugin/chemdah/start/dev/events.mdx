@@ -1,103 +1,119 @@
 ---
 title: "事件参考"
-sidebar_position: 2
+sidebar_position: 7
 ---
 
 
 # 事件参考
 
-Chemdah 的所有事件均继承自 TabooLib 的 `BukkitProxyEvent`，通过 `@SubscribeEvent` 注解监听。
+<Callout type="warn">
 
-<Callout type="info">
-
-`BukkitProxyEvent` 默认支持取消（`isCancelled = true`），但部分事件标注了 `allowCancelled = false`，表示该事件不可取消。
+本文由 AI 辅助生成，可能存在疏漏或与当前版本不一致。Chemdah 为闭源付费插件，请以你使用的版本、`api` 依赖与实际运行行为为准；疑问请联系作者或售后群（见 [服务](/plugin/chemdah/service)）。
 
 </Callout>
 
-## 任务事件（QuestEvents）
+Chemdah 事件位于 `ink.ptms.chemdah.api.event.collect`（及部分 `ink.ptms.chemdah.api.event`），均继承 TabooLib 的 `BukkitProxyEvent`，使用 `@SubscribeEvent` 监听。档案加载与释放与 `Database` 的关系见 [API 参考](./api)、[自定义数据库](./database)。
+
+<Callout type="info">
+
+`BukkitProxyEvent` 默认支持取消（`isCancelled = true`）。标注 `allowCancelled = false` 的事件不可取消。
+
+</Callout>
+
+## 档案生命周期
+
+与 `Database.loadProfile` / `releaseProfile`、缓存 `ChemdahAPI.playerProfile` 直接相关：
 
 | 事件 | 主要字段 | 可取消 | 说明 |
 | --- | --- | :---: | --- |
-| `Accept.Pre` | `quest: Template`, `playerProfile`, `reason: String?` | ✓ | 任务被接受前，可修改 `reason` |
-| `Accept.Post` | `quest: Quest`, `playerProfile` | ✗ | 任务接受后 |
-| `Complete.Pre` | `quest: Quest`, `playerProfile` | ✓ | 任务完成前 |
-| `Complete.Post` | `quest: Quest`, `playerProfile` | ✗ | 任务完成后 |
-| `Fail.Pre` | `quest: Quest`, `playerProfile` | ✓ | 任务失败前 |
-| `Fail.Post` | `quest: Quest`, `playerProfile` | ✗ | 任务失败后 |
-| `Restart.Pre` | `quest: Quest`, `playerProfile` | ✓ | 任务重置前 |
-| `Restart.Post` | `quest: Quest`, `playerProfile` | ✗ | 任务重置后 |
-| `Registered` | `quest: Quest`, `playerProfile` | ✗ | 任务注册到玩家数据时 |
-| `Unregistered` | `quest: Quest`, `playerProfile` | ✗ | 任务从玩家数据注销时 |
-| `Agent` | `questContainer`, `playerProfile`, `agentType`, `restrict` | ✓ | 任务脚本代理执行时 |
-| `DataSet.Pre` | `player`, `playerProfile: PlayerProfile`, `quest`, `dataContainer`, `key`, `value: Data` | ✓ | 任务数据设置前，可修改 `value` |
-| `DataSet.Post` | `player`, `playerProfile: PlayerProfile`, `quest`, `dataContainer`, `key`, `value: Data` | ✗ | 任务数据设置后 |
-| `DataRemove.Pre` | `player`, `playerProfile: PlayerProfile`, `quest`, `dataContainer`, `key` | ✓ | 任务数据移除前 |
-| `DataRemove.Post` | `player`, `playerProfile: PlayerProfile`, `quest`, `dataContainer`, `key` | ✗ | 任务数据移除后 |
-| `ScoreboardTrack` | `content: MutableList<String>`, `playerProfile` | ✗ | 追踪记分板内容更新时，可修改列表 |
+| `Selected` | `player`, `playerProfile` | ✗ | 档案已写入缓存；此后可用 `player.chemdahProfile` |
+| `Updated` | `player`, `playerProfile` | ✗ | `PlayerProfile.push()` 写盘成功后 |
+| `Released` | `player` | ✗ | 数据释放流程开始（默认 Quit，或 `Database.releaseProfile`） |
 
-## 条目事件（ObjectiveEvents）
+`Released` 提供 `await(runnable)` 注册异步收尾，以及 `wait()`：先 `call()` 再等待全部 `await` 任务。Chemdah 在 MONITOR 阶段监听 `Released`，在 `isDisableAutoSave = false` 时执行 `push` 并移除 `playerProfile` 缓存。
 
 | 事件 | 主要字段 | 可取消 | 说明 |
 | --- | --- | :---: | --- |
-| `Continue.Pre` | `objective`, `task`, `quest`, `playerProfile` | ✓ | 条目进度推进前 |
-| `Continue.Post` | `objective`, `task`, `quest`, `playerProfile` | ✗ | 条目进度推进后 |
-| `Complete.Pre` | `objective`, `task`, `quest`, `playerProfile` | ✓ | 条目完成前 |
-| `Complete.Post` | `objective`, `task`, `quest`, `playerProfile` | ✗ | 条目完成后 |
-| `Restart.Pre` | `objective`, `task`, `quest`, `playerProfile` | ✓ | 条目重置前 |
-| `Restart.Post` | `objective`, `task`, `quest`, `playerProfile` | ✗ | 条目重置后 |
+| `Track` | `player`, `playerProfile`, `trackingQuest?`, `cancel` | ✓ | 玩家切换任务追踪 |
+| `LevelChange` | `player`, `option`, `oldLevel`, `oldExperience`, `newLevel`, `newExperience` | ✓ | 自定义等级变动，可改 `newLevel` / `newExperience` |
+| `ScenesBlockBreak` | `player`, `blockData` | ✓ | 破坏演出方块（构造时默认已取消） |
+| `ScenesBlockInteract` | `player`, `blockData` | ✗ | 交互演出方块 |
+| `Trigger` | `player`, `value: String` | ✓ | `Player.callTrigger` 或等价逻辑唤起前 |
+| `DataSet.Pre` / `Post` | `player`, `playerProfile`, `dataContainer`, `key`, `value` | Pre ✓ | 玩家级 `DataContainer` 读写 |
+| `DataRemove.Pre` / `Post` | `player`, `playerProfile`, `dataContainer`, `key` | Pre ✓ | 玩家级键移除 |
 
-## 对话事件（ConversationEvents）
+## 任务事件
 
 | 事件 | 主要字段 | 可取消 | 说明 |
 | --- | --- | :---: | --- |
-| `Load` | `file: File?`, `option`, `root` | ✓ | 对话文件加载时 |
-| `Select` | `player`, `namespace`, `id`, `conversation?`, `source?` | ✓ | 玩家触发对话选择时，可替换 `conversation` |
+| `Accept.Pre` | `quest: Template`, `playerProfile`, `reason: String?` | ✓ | 接受前，可改 `reason` |
+| `Accept.Post` | `quest: Quest`, `playerProfile` | ✗ | 接受后 |
+| `Complete.Pre` / `Post` | `quest: Quest`, `playerProfile` | Pre ✓ | 任务完成前后 |
+| `Fail.Pre` / `Post` | `quest: Quest`, `playerProfile` | Pre ✓ | 任务失败（放弃）前后 |
+| `Restart.Pre` / `Post` | `quest: Quest`, `playerProfile` | Pre ✓ | 任务重置前后 |
+| `Registered` | `quest: Quest`, `playerProfile` | ✗ | 任务注册到玩家档案 |
+| `Unregistered` | `quest: Quest`, `playerProfile` | ✗ | 任务从档案注销 |
+| `Agent` | `questContainer`, `playerProfile`, `agentType`, `restrict` | ✓ | 任务脚本代理执行 |
+| `DataSet.Pre` / `Post` | `player`, `playerProfile`, `quest`, `dataContainer`, `key`, `value` | Pre ✓ | 任务实例数据设置 |
+| `DataRemove.Pre` / `Post` | `player`, `playerProfile`, `quest`, `dataContainer`, `key` | Pre ✓ | 任务实例数据移除 |
+| `ScoreboardTrack` | `content: MutableList<String>`, `playerProfile` | ✗ | 追踪记分板行更新，可改 `content` |
+
+`QuestEvents.Collect` 已废弃，请改用 `ChemdahAPI.eventFactory` 相关机制。
+
+## 条目事件
+
+| 事件 | 主要字段 | 可取消 | 说明 |
+| --- | --- | :---: | --- |
+| `Continue.Pre` / `Post` | `objective`, `task`, `quest`, `playerProfile` | Pre ✓ | 条目进度推进 |
+| `Complete.Pre` / `Post` | `objective`, `task`, `quest`, `playerProfile` | Pre ✓ | 条目完成 |
+| `Restart.Pre` / `Post` | `objective`, `task`, `quest`, `playerProfile` | Pre ✓ | 条目重置 |
+
+## 对话事件
+
+| 事件 | 主要字段 | 可取消 | 说明 |
+| --- | --- | :---: | --- |
+| `Load` | `file: File?`, `option`, `root` | ✓ | 对话文件加载 |
+| `Select` | `player`, `namespace`, `id: List<String>`, `conversation?`, `source?` | ✓ | 对话选择前，可替换 `conversation` |
 | `Pre` | `conversation`, `session`, `relay` | ✓ | 对话开始前 |
-| `Begin` | `conversation`, `session`, `relay` | ✗ | 对话渲染时 |
+| `Begin` | `conversation`, `session`, `relay` | ✗ | 对话渲染 |
 | `Post` | `conversation`, `session`, `relay` | ✗ | 对话开始后 |
-| `SelectReply` | `player`, `session`, `reply: PlayerReply` | ✓ | 玩家选择回复时 |
-| `Agent` | `conversation`, `session`, `agentType` | ✓ | 对话脚本代理执行时 |
+| `SelectReply` | `player`, `session`, `reply: PlayerReply` | ✓ | 玩家选择回复 |
+| `Agent` | `conversation`, `session`, `agentType` | ✓ | 对话脚本代理 |
 | `Close` | `session`, `refuse`, `conversation` | ✓ | 对话结束前 |
 | `Closed` | `session`, `refuse`, `conversation` | ✗ | 对话结束后 |
-| `ReplyClosed` | `session`, `conversation` | ✗ | 玩家通过回复正常结束对话时（先于 Closed） |
-| `Cancelled` | `conversation`, `session`, `relay` | ✗ | 对话被取消时 |
-| `ChestThemeBuild` | `session`, `message`, `canReply`, `inventory` | ✗ | 箱子主题页面构建完成后 |
+| `ReplyClosed` | `session`, `conversation` | ✗ | 通过回复正常结束（先于 `Closed`） |
+| `Cancelled` | `conversation`, `session`, `relay` | ✗ | 对话被取消 |
+| `ChestThemeBuild` | `session`, `message`, `canReply`, `inventory` | ✗ | 箱子主题页面构建完成 |
 
-## 玩家事件（PlayerEvents）
-
-| 事件 | 主要字段 | 可取消 | 说明 |
-| --- | --- | :---: | --- |
-| `Selected` | `player`, `playerProfile` | ✗ | 玩家数据加载完成 |
-| `Released` | `player` | ✗ | 玩家离开服务器，可通过 `await()` 挂起异步任务 |
-| `Updated` | `player`, `playerProfile` | ✗ | 玩家数据更新时 |
-| `Track` | `player`, `playerProfile`, `trackingQuest?`, `cancel` | ✓ | 玩家切换任务追踪时 |
-| `LevelChange` | `player`, `option`, `oldLevel`, `oldExperience`, `newLevel`, `newExperience` | ✓ | 自定义等级数据变动，可修改 `newLevel`/`newExperience` |
-| `ScenesBlockBreak` | `player`, `blockData` | ✓ | 玩家破坏演出方块（默认已取消） |
-| `ScenesBlockInteract` | `player`, `blockData` | ✗ | 玩家交互演出方块 |
-| `Trigger` | `player`, `value: String` | ✓ | 玩家唤起 Trigger 类型任务时 |
-| `DataSet.Pre` | `player`, `playerProfile`, `dataContainer`, `key`, `value: Data` | ✓ | 玩家数据设置前 |
-| `DataSet.Post` | `player`, `playerProfile`, `dataContainer`, `key`, `value: Data` | ✗ | 玩家数据设置后 |
-| `DataRemove.Pre` | `player`, `playerProfile`, `dataContainer`, `key` | ✓ | 玩家数据移除前 |
-| `DataRemove.Post` | `player`, `playerProfile`, `dataContainer`, `key` | ✗ | 玩家数据移除后 |
-
-## 模板事件（TemplateEvents）
+## 模板事件
 
 | 事件 | 主要字段 | 可取消 | 说明 |
 | --- | --- | :---: | --- |
-| `Load` | `file: File?`, `id: String`, `root` | ✓ | 任务模板加载时 |
-| `ControlHook` | `template`, `type`, `map`, `control?` | ✗ | 控制器挂钩，可通过设置 `control` 注入自定义控制器 |
+| `Load` | `file: File?`, `id: String`, `root` | ✓ | 任务模板加载 |
+| `ControlHook` | `template`, `type`, `map`, `control?` | ✗ | 控制器挂钩，可注入 `control` |
 
-## Hook 事件
+## 重载事件
 
-用于第三方插件注册自定义实体、方块、物品或队伍的识别器。
+`ChemdahAPI.reloadAll()` 或内部重载流程触发，均不可取消。
 
 | 事件 | 主要字段 | 说明 |
 | --- | --- | --- |
-| `InferEntityHookEvent` | `id: String`, `entityClass` | 注册自定义实体识别器 |
-| `InferBlockHookEvent` | `id: String`, `blockClass` | 注册自定义方块识别器 |
-| `InferItemHookEvent` | `id: String`, `itemClass` | 注册自定义物品识别器 |
-| `PartyHookEvent` | `plugin: String`, `party: Party?` | 注册自定义队伍实现 |
-| `PlaceholderHookEvent` | `player`, `profile`, `identifier: String`, `parameter: String`, `result` | 注册自定义 Placeholder 处理器 |
+| `Quest` | `isInt: Boolean` | 任务配置重载；首次多在 ACTIVE |
+| `Conversation` | — | 对话重载；首次多在 ACTIVE |
+| `Module` | — | 模块重载；首次可能在 ENABLE（未必能监听到） |
+| `WizardModel` | — | Wizard 模块重载且数据已加载；首次多在 ACTIVE |
+
+## Hook 事件
+
+第三方注册自定义识别器或扩展，包名 `ink.ptms.chemdah.api.event`。
+
+| 事件 | 主要字段 | 说明 |
+| --- | --- | --- |
+| `InferEntityHookEvent` | `id`, `entityClass` | 注册 `InferEntity` 实现类 |
+| `InferBlockHookEvent` | `id`, `blockClass` | 注册 `InferBlock` 实现类 |
+| `InferItemHookEvent` | `id`, `itemClass` | 注册 `InferItem` 实现类 |
+| `PartyHookEvent` | `plugin`, `party?` | 自定义队伍实现 |
+| `PlaceholderHookEvent` | `player`, `profile`, `identifier`, `parameter`, `result` | 自定义 Placeholder |
 
 ## 监听示例
 
@@ -109,7 +125,6 @@ object QuestListener {
 
     @SubscribeEvent
     fun onAcceptPre(e: QuestEvents.Accept.Pre) {
-        // 阻止特定任务被接受
         if (e.quest.id == "forbidden_quest") {
             e.isCancelled = true
             e.reason = "该任务当前不可接受"
@@ -132,10 +147,16 @@ object ProfileListener {
 
     @SubscribeEvent
     fun onSelected(e: PlayerEvents.Selected) {
-        // 玩家数据就绪后执行初始化逻辑
         val profile = e.playerProfile
         if (profile.persistentDataContainer["first_join"] == null) {
             profile.persistentDataContainer["first_join"] = System.currentTimeMillis().toString()
+        }
+    }
+
+    @SubscribeEvent
+    fun onReleased(e: PlayerEvents.Released) {
+        e.await {
+            // 与 Chemdah 写盘并行注册的异步清理（勿阻塞过久）
         }
     }
 }
@@ -149,7 +170,6 @@ object ConversationListener {
 
     @SubscribeEvent
     fun onSelect(e: ConversationEvents.Select) {
-        // 可以在这里替换或取消对话
         if (e.player.hasPermission("vip.bypass")) {
             e.conversation = null
             e.isCancelled = true

@@ -1,0 +1,214 @@
+---
+title: "自定义数据库"
+sidebar_position: 6
+---
+
+
+# 自定义数据库
+
+<Callout type="warn">
+
+本文由 AI 辅助生成，可能存在疏漏或与当前版本不一致。Chemdah 为闭源付费插件，请以你使用的版本、`api` 依赖与实际运行行为为准；疑问请联系作者或售后群（见 [服务](/plugin/chemdah/service)）。
+
+</Callout>
+
+通过 `ink.ptms.chemdah:api` 扩展点，可将 **`PlayerProfile`** 持久化接到自有存储（MySQL、Redis、角色存档等），并与账号/角色系统的加载时机对齐。
+
+玩家与任务键值在内存中的用法见 [持久化数据容器](./persistent-data-container)。若只需在关系库中改写键名，见 [存档键映射](./persistence-key-codecs)；本文面向**整库替换** `Database` 实现。
+
+## 适用场景
+
+Chemdah 在内存中维护每位在线玩家的 **`PlayerProfile`**（进行中任务、玩家级键值、完成记录等）。默认在插件 **ACTIVE** 阶段初始化 **`Database`**（别名 **`ChemdahDatabase`**），常见落盘为插件目录 **`data.db`（SQLite）** 或配置中的 **SQL**。
+
+在以下需求下，需要 **实现并注册自定义 `Database`**，并通常 **关闭 Chemdah 自带的 Join/Quit 加载与释放**，改由自有事件驱动：
+
+- 与 **角色存档 / 账号系统 / 跨服缓存** 共用存储；
+- 使用 **Mongo、Redis、分库分表** 等替代 `data.db`；
+- 在 **存档加载完成之后** 再加载任务，而不是 Bukkit 进服事件。
+
+<Callout type="info">
+
+常见做法是与角色存档插件在「角色数据已就绪」后再执行与 `loadProfile` 等价的步骤，而不是在 `PlayerJoinEvent` 里立刻读档。
+
+</Callout>
+
+## Chemdah 默认行为
+
+| 环节 | 默认行为（`Database` companion） |
+| --- | --- |
+| 初始化 | `LifeCycle.ACTIVE` 时 **`Database.setup()` 只执行一次**（源码注释：任务首次加载完成后）；无自定义实现则用 SQLite/SQL |
+| 进服加载 | `isLoadInJoinEvent = true`：Join 后延迟（默认约 20 tick）**异步** `loadProfile` |
+| 退服释放 | `isReleaseInQuitEvent = true`：Quit 时 `PlayerEvents.Released` |
+| 释放后写盘 | `Released` 监听里若 `profile.isDataChanged`，调用 `profile.push()` → `update` + `releaseQuest` |
+| 周期保存 | 每 200 tick 对在线且已加载的 profile 调用 `push()` |
+| 关服 | DISABLE 时对仍在线玩家 `push()` |
+
+`loadProfile(player)` 的固定步骤（自定义加载时机应 **等价执行**）：
+
+1. `val profile = Database.INSTANCE.select(player)`
+2. `profile.validation()` — 校验任务状态合法性
+3. `ChemdahAPI.playerProfile[player.name] = profile`
+4. `PlayerEvents.Selected(player, profile).call()`
+
+缓存中已有 profile 且 **`Selected`** 已触发后，**`player.chemdahProfile` / `isChemdahProfileLoaded`** 才可用。
+
+关闭 Quit 释放时，须在 **自定的「玩家数据卸载」时机** 手动完成与官方 Quit 链路等价的释放与保存（见下文「卸载」）。默认情况下，**`PlayerEvents.Released`** 之后由 Chemdah 执行 `push` 并清理缓存。
+
+## 实现 `Database`
+
+抽象类：`ink.ptms.chemdah.core.database.Database`（**`ChemdahDatabase`** 为同一类型别名）。
+
+| 方法 | 语义 |
+| --- | --- |
+| `select(player)` | 从存储读出档案，返回 **`PlayerProfile`**（可使用子类） |
+| `update(player, playerProfile)` | 将有变更的档案写回存储 |
+| `releaseQuest(player, playerProfile, quest)` | 任务移除/完成等场景下，删除存储中该任务数据 |
+| `variables()` | 全局变量名列表 |
+| `selectVariable0` / `updateVariable0` / `releaseVariable0` | 全局变量读写删（对外 API：key ≤ 36，value ≤ 64） |
+
+`PlayerProfile.push()` 在 `isDataChanged` 时调用 **`update`**，并对 **`releaseQuests`** 队列逐个调用 **`releaseQuest`**。因此 **`update` 不必处理待删除任务**，**`releaseQuest` 须删除存储中的任务记录**。
+
+### `select` 与内存模型
+
+- **`PlayerProfile`**：构造传入玩家 `UUID`；配置 **`persistentDataContainer`**（常用 **`SimpleDataContainer`** + `DataContainerEventFactory`）。
+- **进行中任务**：为每个任务 id 准备 **`DataContainer`**，再 **`registerQuest(Quest(...), newQuest = false)`**（或 `Quest` 子类）。
+- 任务模板须能通过 **`ChemdahAPI.getQuestTemplate(id)`** 解析；读档后调用 **`validation()`**，或自行过滤无效任务。
+
+官方 SQLite 在 `select` 时按 **`QuestDataIsolation`** 扫表；自定义存储应对齐「每玩家多条任务、每任务一个键值容器」的结构。
+
+## 注册自定义实现
+
+### 赋值 INSTANCE
+
+在 **`Database.setup()` 之前** 赋值。`setup()` 开头若已初始化则直接返回，不会被 SQLite/SQL 覆盖。
+
+典型时机：插件 **`LifeCycle.LOAD`**，并保证 **Chemdah 已加载、赋值发生在 ACTIVE 的 `setup()` 之前**。
+
+```kotlin
+Database.isLoadInJoinEvent = false
+Database.isReleaseInQuitEvent = false
+// 卸载时仍走 Chemdah push：isDisableAutoSave = false
+// 完全自管写盘：isDisableAutoSave = true，并在存档点自行 update / push
+Database.INSTANCE = MyCustomDatabase()
+```
+
+### registerDatabaseImpl
+
+`setup()` 优先使用 **`PlatformFactory.getAPIOrNull<Database>()`**。在 LOAD 阶段注册即可，无需先赋值 `INSTANCE`：
+
+```kotlin
+@Awake(LifeCycle.LOAD)
+fun init() {
+    Database.isLoadInJoinEvent = false
+    Database.isReleaseInQuitEvent = false
+    Chemdah.registerDatabaseImpl(MyCustomDatabase())
+}
+```
+
+与提前赋值 `INSTANCE` 二选一；若 LOAD 时已赋值 `INSTANCE`，`setup()` 会直接返回，不再读取 `PlatformFactory`。
+
+## 自管生命周期
+
+关闭默认 Join/Quit 后，建议固定三条链路。
+
+### 加载
+
+在「角色/用户数据已就绪、可安全使用 Bukkit `Player`」的回调中：
+
+```kotlin
+fun onPlayerDataReady(player: Player) {
+    val profile = Database.INSTANCE.select(player)
+    profile.validation()
+    ChemdahAPI.playerProfile[player.name] = profile
+    submit { PlayerEvents.Selected(player, profile).call() }
+}
+```
+
+须写入 **`ChemdahAPI.playerProfile`** 并触发 **`Selected`**；仅 `select` 会导致任务系统判定档案未加载。若与登录链其它逻辑争用顺序，可将 **`Selected`** 推迟到下一 tick。
+
+也可直接调用 **`Database.loadProfile(player)`**（内部即上述四步），前提是 **`Database.INSTANCE`** 已是自定义实现。
+
+### 保存
+
+- **沿用 Chemdah 自动保存**：`isDisableAutoSave = false`，定时 `push()` 与 `Released` 后的 `push()` 会调用自定义 **`update`**。
+- **完全自管**：`isDisableAutoSave = true`，在存档点调用 `player.chemdahProfile.push()` 或 `Database.INSTANCE.update(player, profile)`（profile 须仍在缓存中）。
+
+### 卸载
+
+档案销毁前：
+
+1. 发送 **`PlayerEvents.Released(player)`** 并等待完成（`Database.releaseProfile(player)` 即封装此步）。
+2. `isDisableAutoSave = false` 时，Chemdah 在 `Released` 的 MONITOR 阶段 **`push`** 并 **`ChemdahAPI.playerProfile.remove(player.name)`**。
+3. `isDisableAutoSave = true` 且已关闭 Quit 释放时，须自行 **`push`（或 `update`）→ 移除缓存**，顺序与官方 Quit 链路一致。
+
+## `select` / `update` 约定
+
+| 主题 | 建议 |
+| --- | --- |
+| 存储粒度 | **玩家全局键值**（`persistentDataContainer`）+ **按 questId 的任务键值** |
+| 临时键 | 以 `__` 开头的键多为临时状态，写盘时过滤 |
+| 键名中的 `.` | 底层不支持 `.` 时，写盘替换为 `::` 等，读盘还原 |
+| `releaseQuest` | 删除存储中该任务的整段记录 |
+| 全局变量 | 未使用时 `variables()` 返回空列表，`*Variable0` 与脚本约定一致（空操作或明确异常） |
+
+## 最小骨架示例
+
+```kotlin
+class MyCustomDatabase : Database() {
+
+    override fun select(player: Player): PlayerProfile {
+        val profile = PlayerProfile(player.uniqueId)
+        profile.setup()
+        // 从存储读取玩家级 map → persistentDataContainer
+        // 读取进行中任务 → registerQuest(Quest(id, profile, container), newQuest = false)
+        return profile
+    }
+
+    override fun update(player: Player, playerProfile: PlayerProfile) {
+        // isDataChanged 为 true 时由 push 调用；写回玩家级与各任务数据
+    }
+
+    override fun releaseQuest(player: Player, playerProfile: PlayerProfile, quest: Quest) {
+        // 删除存储中该 quest 数据
+    }
+
+    override fun variables(): List<String> = emptyList()
+    override fun selectVariable0(key: String): String? = null
+    override fun updateVariable0(key: String, value: String) {}
+    override fun releaseVariable0(key: String) {}
+}
+
+object MyChemdahDatabaseHook {
+
+    @Awake(LifeCycle.LOAD)
+    fun init() {
+        Database.isLoadInJoinEvent = false
+        Database.isReleaseInQuitEvent = false
+        Database.INSTANCE = MyCustomDatabase()
+    }
+}
+```
+
+将加载/卸载挂到角色系统对应事件（上文「生命周期」）。
+
+## 依赖与版本
+
+- 编译：`compileOnly("ink.ptms.chemdah:api:<version>")`，版本与运行环境 Chemdah 一致。
+- 运行：服务器加载 Chemdah 插件；接管代码可为独立插件或并入现有插件。
+
+## 排查
+
+| 现象 | 可能原因 |
+| --- | --- |
+| 进服踢出「无法加载您的数据」 | 已关 `isLoadInJoinEvent` 但未执行等价 `loadProfile`；或未触发 `Selected` |
+| `chemdahProfile` 不可用 | 未写入 `ChemdahAPI.playerProfile`；缓存 key 与 `player.name` 不一致 |
+| 进度不保存 | `isDisableAutoSave = true` 但未 `push`/`update`；或 `isDataChanged` 恒为 false |
+| 完成后存储残留 | `releaseQuest` 未删净；`releaseQuests` 未随 `push` 处理 |
+| 仍写 `data.db` | `setup()` 先于赋值，或 `INSTANCE` 未赋值；检查插件加载顺序 |
+| 全局变量无效 | 未实现 `*Variable0` 或违反长度限制 |
+
+## 相关类型
+
+- `ink.ptms.chemdah.core.database.Database` — 持久化扩展点
+- `ink.ptms.chemdah.Chemdah.registerDatabaseImpl` — 注册自定义实现
+- `ink.ptms.chemdah.api.event.collect.PlayerEvents.Selected` / `Released` — 档案加载与释放事件

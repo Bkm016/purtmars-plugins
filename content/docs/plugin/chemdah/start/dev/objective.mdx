@@ -1,0 +1,203 @@
+---
+title: "自定义目标"
+sidebar_position: 3
+---
+
+
+# 自定义目标
+
+任务条目里的 `type` 对应一个已注册的 **Objective**（任务目标）。内置目标由 Chemdah 在加载时扫描并注册；附属插件在监听自有 Bukkit 事件时，需自行实现 Objective 并在 **`LifeCycle.ENABLE`**（或更晚、玩家进服前）调用 **`register()`**。
+
+<Callout type="warn">
+
+本文由 AI 辅助生成，可能存在疏漏或与当前版本不一致。Chemdah 为闭源付费插件，请以你使用的版本、`api` 依赖与实际运行行为为准；疑问请联系作者或售后群（见 [服务](/plugin/chemdah/service)）。
+
+</Callout>
+
+## 注册时机
+
+```kotlin
+import ink.ptms.chemdah.core.quest.QuestLoader.register
+import taboolib.common.LifeCycle
+import taboolib.common.platform.Awake
+
+@Awake(LifeCycle.ENABLE)
+private fun onEnable() {
+    ObjectiveProductionCompleted.register()
+}
+```
+
+`register()` 是 **`QuestLoader` 对 `Objective` 的扩展方法**（不要与 `ChemdahAPI.addQuestObjective` 混淆）。它会：
+
+1. 把目标写入 `ChemdahAPI.questObjective`（`name` 已存在时会警告且**不会**写入）
+2. 在 `isListener = true` 时注册 Bukkit 监听；事件到达且 `using` 为 true 时，在玩家 **`isChemdahProfileLoaded`** 后推进条目
+
+须保证 Chemdah 已加载，且注册发生在玩家接受相关任务之前。
+
+## 实现步骤
+
+1. 选定事件类型 `E`（自定义 `Event` 或 Bukkit/Paper 事件）。
+2. 继承 **`Objective<E>`** 或 **`ObjectiveCountableI<E>`**（按次数累计进度时用后者）。
+3. 实现 **`name`**（与任务 YAML 里条目的 **`type`** 字符串一致，通常小写、空格分隔）。
+4. 实现 **`event`**，在 **`init`** 里配置 **`handler`**（从事件解析 `Player`）与条件。
+5. 在插件 **`ENABLE`** 阶段对单例调用 **`register()`**。
+
+## 生产完成示例
+
+下列代码来自 Frontier 生产玩法：监听 `ProductionCompletedEvent`，类型名为 **`production completed`**。
+
+```kotlin
+object ObjectiveProductionCompleted : ObjectiveCountableI<ProductionCompletedEvent>() {
+
+    override val event: Class<ProductionCompletedEvent>
+        get() = ProductionCompletedEvent::class.java
+
+    override val name: String
+        get() = "production completed"
+
+    init {
+        handler { event -> event.session.player }
+        addSimpleCondition("position") { data, e ->
+            data.toPosition().inside(e.session.player.location)
+        }
+        addSimpleCondition("recipe") { data, e ->
+            data.asList().any { e.task.recipe.id.eqic(it) }
+        }
+        addSimpleCondition("recipe:family") { data, e ->
+            data.asList().any { e.task.recipe.family.eqic(it) }
+        }
+        addSimpleCondition("recipe:star") { data, e ->
+            data.toConditionNumber().check(e.task.recipe.star)
+        }
+        addSimpleCondition("catalyst") { data, e ->
+            data.asList().any { it.eqic(e.task.catalyst?.id ?: "null") }
+        }
+        addSimpleCondition("product") { data, e ->
+            data.asList().any { e.product.eqic(it) }
+        }
+        addSimpleCondition("amount") { data, e ->
+            data.toConditionNumber().check(e.amount)
+        }
+    }
+}
+```
+
+任务配置中引用同一 `type`，并在 **`condition`** / **`goal`** 里写与 `addSimpleCondition` 同名的键（未写的条件不参与校验）：
+
+```yaml
+tasks:
+  craft_iron:
+    type: production completed
+    condition:
+      recipe: [iron_sword_recipe]
+      product: [iron_ingot]
+    goal:
+      amount: 10
+```
+
+`ObjectiveCountableI` 已内置 **`goal.amount`**（整数）：每次事件通过条件后，进度键 `amount` 累加；默认每次 **`+1`**。若单次事件应增加多格进度，可重写 **`getCount(profile, task, event): Int`**。
+
+## 基类体系
+
+Chemdah 在 API 里提供的可继承类型只有下面三层；绝大多数内置 `type` 继承 **`ObjectiveCountableI`**，少数用 **`ObjectiveCountableF`** 或直接 **`Objective`**。
+
+```
+Objective<E>                    // 根抽象类，定义 name / event / 条件与 goal
+├── ObjectiveCountableI<E>      // goal.amount 为 Int，getCount → Int
+├── ObjectiveCountableF<E>      // goal.amount 为 Double，getCount → Double
+└── （直接继承 Objective）       // 完全自定义 goal / onContinue / getProgress
+```
+
+| 基类 | `goal.amount` | 进度存储 | 典型用法 |
+| --- | --- | --- | --- |
+| **`Objective<E>`** | 自行 `addGoal` | 自行 `onContinue` / `getProgress` | 永不完成、纯脚本 goal、非累计型逻辑 |
+| **`ObjectiveCountableI<E>`** | 整数，≥ 1 | 条目数据键 `amount`（Int） | 击杀次数、完成次数、Frontier `production completed` 等 |
+| **`ObjectiveCountableF<E>`** | 浮点，≥ 1.0 | 条目数据键 `amount`（Double） | 累计恢复量、伤害量等（如内置 `health regain`） |
+
+### 直接继承 `Objective`
+
+不经过 Countable 时，需自己处理 **`onContinue`**、**`getProgress`**（及需要的 **`addGoal`**）。内置示例 **`never`**：`isListener = false`，`addGoal("null") { _, _ -> false }`，用于占位条目。
+
+### 浮点累计
+
+单次恢复量计入进度，重写 **`getCount` 返回 `Double`**：
+
+```kotlin
+object IPlayerRegain : ObjectiveCountableF<EntityRegainHealthEvent>() {
+
+    override val name = "health regain"
+    override val event = EntityRegainHealthEvent::class.java
+
+    init {
+        handler { it.entity as? Player }
+        addCondition("amount", "Number") { _, _, it -> it.amount }
+    }
+
+    override fun getCount(profile: PlayerProfile, task: Task, event: EntityRegainHealthEvent): Double {
+        return event.amount
+    }
+}
+```
+
+任务里 `goal.amount` 可写 `100.0` 表示累计恢复量目标。
+
+### 不注册监听
+
+部分内置目标**不注册事件**，改由其它入口驱动：
+
+| 内置 `type` | 驱动方式 |
+| --- | --- |
+| `trigger` | `Player.callTrigger(value)` / `PlayerEvents.Trigger` |
+| `never` | 无事件，goal 恒 false |
+| `player data` / `quest data` | 可开 `isListener` 听 `DataSet.Post`，并常配合 **`isTickable = true`**（每 20 tick 检查 goal） |
+
+第三方自定义事件目标一般保持 **`isListener = true`**（默认），在 `ENABLE` 时 `register()` 即可。
+
+### 数据检测
+
+内置 **`player data`**、**`quest data`** 继承 **`APlayerData<E>`**（基类为 **`ObjectiveCountableI`**），完成条件在 **`goal.key` / `goal.value`**（`addGoal("key")` 比较数据），不是事件次数型 **`goal.amount`**；默认 **`isTickable = true`**，并常配合 **`DataSet.Post`** 监听。自定义类似逻辑可继承 **`APlayerData`** 或对照源码。
+
+### 选型
+
+| 需求 | 建议 |
+| --- | --- |
+| 事件发生一次算 1 次（或整数步进） | **`ObjectiveCountableI`** + 可选重写 `getCount` |
+| 每次事件带小数/可变增量（治疗量等） | **`ObjectiveCountableF`** + 重写 `getCount` |
+| 完成条件不是累计 `amount` | **`Objective`**，自定义 `addGoal` / `onContinue` |
+| 仅脚本或 `callTrigger` 触发 | **`ObjectiveCountableI`** + **`isListener = false`**（参考 `trigger`） |
+
+内置 **`player inventory`** 不换 `type`、只改 `handler` 的用法见 [背包条目](./player-inventory)。
+
+## 条件写法
+
+| API | 说明 |
+| --- | --- |
+| `handler { … }` | `Function<E, Player?>`，无法解析玩家则跳过 |
+| `addSimpleCondition(name) { data, event -> … }` | `data` 为条目 `condition[name]`，仅当配置里存在该键时才检查 |
+| `addCondition(name, pattern, getter)` | 标准条件，与内置目标、编辑器元数据一致 |
+| `addFullCondition` | 可访问 `PlayerProfile`、`Task` 的完整条件 |
+
+条目还可写 **`condition.$`** 等脚本代理，见 [任务条目](/plugin/chemdah/start/quest/task/main)。
+
+## 可选行为
+
+在子类中可覆盖：
+
+| 属性 | 默认 | 说明 |
+| --- | --- | --- |
+| `priority` | `HIGHEST` | Bukkit 监听优先级 |
+| `ignoreCancelled` | `true` | 是否忽略已取消事件 |
+| `isListener` | `true` | 为 `false` 时不注册事件（仅手动 `callTrigger` 等场景） |
+| `isTickable` | `false` | 为 true 时由 `QuestChecker` 每 20 tick 走 `handleTask`（非仅「读进度」） |
+
+## 注意
+
+- **`name` 全局唯一**：`questObjective.put` 若 id 已存在会打警告并**拒绝写入**（`register()` 实际不会替换旧目标）。
+- 玩家须已加载 Chemdah 档案（`isChemdahProfileLoaded`），否则监听回调不会推进任务。
+- Chemdah 包内带 **`@Dependency`** 的单例目标在 **ENABLE** 时由 `QuestLoader` 扫描注册；**附属插件自定义目标不在该扫描范围内**，务必显式 **`register()`**。
+- 更完整的内置 `type` 列表见 [条目类型](/plugin/chemdah/start/quest/task/type)；自定义 `type` 不会自动出现在该页，需在自有文档或任务注释中说明 `condition` / `goal` 字段。
+
+## 相关
+
+- [API 参考](./api) — `getQuestObjective`、`callTrigger`
+- [事件参考](./events) — `ObjectiveEvents.Continue` / `Complete`

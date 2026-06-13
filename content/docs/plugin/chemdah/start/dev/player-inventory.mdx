@@ -1,0 +1,80 @@
+---
+title: "背包条目"
+sidebar_position: 4
+---
+
+
+# 背包条目
+
+内置类型 **`player inventory`**（`IPlayerInventory`）用于「持有或扣除指定物品」类任务条目。**不需要**新建 Objective 或 `register()`。附属插件在 **`ENABLE`** 阶段赋值 **`IPlayerInventory.handler`**，即可改写统计与扣除逻辑（例如除玩家背包外再计入自有仓库）。
+
+<Callout type="warn">
+
+本文由 AI 辅助生成，可能存在疏漏或与当前版本不一致。Chemdah 为闭源付费插件，请以你使用的版本、`api` 依赖与实际运行行为为准；疑问请联系作者或售后群（见 [服务](/plugin/chemdah/service)）。
+
+</Callout>
+
+## 行为
+
+| 属性 | 值 | 含义 |
+| --- | --- | --- |
+| `isListener` | `false` | 不监听 Bukkit 事件 |
+| `isTickable` | `true` | 由 `QuestChecker` 每 **20 tick**（约 1 秒）对进行中条目调用 `handleTask` 检查 |
+
+条目在 **`condition`** 里配置：
+
+| 键 | 说明 |
+| --- | --- |
+| `item` | 物品选择器（`InferItem`） |
+| `amount` | 需要数量，默认 `1` |
+| `consume` | `true` 达标后扣除；`false` 只检查持有量 |
+| `position` | 可选位置条件 |
+
+- **`consume: false`**：定时检查走 **`handler.hasItem`**（`addFullCondition("item")`）；展示进度用 **`handler.getProgress`**。
+- **`consume: true`**：定时检查里走 **`handler.takeItem`**（在 `addFullCondition("item")` 中）；成功则 **`onContinue`** 累加条目 `amount`，达标后完成条目。
+
+## Handler
+
+默认 **`IPlayerInventory.Handler`** 只处理 **`player.inventory`**。
+
+| 方法 | 作用 |
+| --- | --- |
+| `hasItem` | 是否够数 → `HasResult(success, count)` |
+| `takeItem` | 扣除 → `TakeResult(success, totalHas)` |
+| `getProgress` | 非 `consume` 模式下的进度 |
+
+`HasResult.count` 为 `Map<String, Int>`，key 可区分来源；默认实现只有 `"player"`。
+
+在 **`LifeCycle.ENABLE`**（玩家接任务前）替换 handler，在三个方法内写入你的统计与扣除（多存储自行汇总，Chemdah 无额外注册表 API）：
+
+```kotlin
+import ink.ptms.chemdah.core.quest.objective.other.IPlayerInventory
+import taboolib.common.LifeCycle
+import taboolib.common.platform.Awake
+
+@Awake(LifeCycle.ENABLE)
+fun hookPlayerInventory() {
+    IPlayerInventory.handler = object : IPlayerInventory.Handler() {
+        // override fun hasItem(...) { ... }
+        // override fun takeItem(...) { ... }
+        // override fun getProgress(...) { ... }
+    }
+}
+```
+
+## 任务配置
+
+```yaml
+tasks:
+  submit_item:
+    type: player inventory
+    condition:
+      item: iron_ingot
+      amount: 32
+      consume: true
+```
+
+## 相关
+
+- [自定义目标](./objective)
+- [条目类型](/plugin/chemdah/start/quest/task/type)

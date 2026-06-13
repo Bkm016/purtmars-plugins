@@ -1,0 +1,137 @@
+---
+title: "持久化数据容器"
+sidebar_position: 5
+---
+
+
+# 持久化数据容器
+
+Chemdah 用 **`DataContainer`** 保存可落盘的键值数据。对开发者而言，最常接触的是 **`PlayerProfile.persistentDataContainer`**（玩家级）与 **`Quest.persistentDataContainer`**（单条进行中任务实例级）。内存里始终使用**逻辑键**；关系型内置库写盘前可经 [存档键映射](./persistence-key-codecs) 转成存储键。
+
+<Callout type="warn">
+
+本文由 AI 辅助生成，可能存在疏漏或与当前版本不一致。Chemdah 为闭源付费插件，请以你使用的版本、`api` 依赖与实际运行行为为准；疑问请联系作者或售后群（见 [服务](/plugin/chemdah/service)）。
+
+</Callout>
+
+## 两层容器
+
+| 容器 | 挂载对象 | 典型用途 |
+| --- | --- | --- |
+| **`player.chemdahProfile.persistentDataContainer`** | `PlayerProfile` | 跨任务玩家变量、完成记录、模块等级、冷却、追踪任务 id 等 |
+| **`quest.persistentDataContainer`** | 进行中的 `Quest` | 该任务实例的运行时数据：`start`、条目进度、任务内脚本写的键等 |
+
+玩家档案在 **`PlayerProfile.setup()`** 里创建玩家容器（常见为 **`SimpleDataContainer`**）。每个 **`Quest`** 构造时绑定自己的容器，并挂上 **`DataContainerEventFactory.of(profile, quest)`**，因此任务级读写会带上对应任务上下文。
+
+须在 **`PlayerEvents.Selected`** 之后（即 **`isChemdahProfileLoaded`**）再访问；写盘后由 **`PlayerProfile.push()`** 触发 **`Database.update`**，成功后会发 **`PlayerEvents.Updated`**。
+
+## 读写 API
+
+类型为 **`ink.ptms.chemdah.core.DataContainer`**，值为 **`Data`**（通过 **`data`** 字段或 **`toString()`** / 数值转换方法取值）。
+
+| 操作 | 说明 |
+| --- | --- |
+| `container[key]` | 读取，无键时 `null` |
+| `container[key, def]` | 读取，缺省用 `def` |
+| `container[key] = value` | 写入（`Any`） |
+| `remove` / `clear` | 删键或清空 |
+| `containsKey` / `keys` / `entries` | 查询与遍历 |
+| `isChanged` | 是否有未刷盘的变更 |
+| `flush()` | 取出变更追踪（落库逻辑内部使用） |
+| `unchanged { … }` | 临时写入且不记变更、不触发事件（读档回填常用） |
+
+直接改容器会使 **`PlayerProfile.isDataChanged`** 为 true（玩家容器变更、任一进行中任务容器变更、或存在待 **`releaseQuest`** 的任务时）。周期保存与退服 **`Released`** 链会据此 **`push()`**。
+
+## 常用键约定
+
+以下为 Chemdah 自身与内置玩法常用的**逻辑键**（非穷举）：
+
+**玩家级**
+
+| 键模式 | 含义 |
+| --- | --- |
+| `quest.complete.<questId>` | 任务完成时间戳（毫秒） |
+| `quest.complete.<questId>.<taskId>` | 条目完成时间戳 |
+| `quest.track` | 当前追踪的任务模板 id |
+| `module.level.<optionId>.level` / `.experience` | 等级模块数据 |
+| `quest.automation.<id>.next` 等 | 自动化 addon 调度 |
+
+**任务实例级**
+
+| 键 | 含义 |
+| --- | --- |
+| `start` | 任务接受时间（新实例默认写入） |
+| `display-name` | 可选显示名（meta） |
+| `<taskId>.<node>` | 条目进度等（见下节） |
+
+自定义键名请避免与上述冲突；以 **`__`** 开头的键在 [自定义数据库](./database) 约定中多视为临时状态，写盘时可能被过滤。
+
+## 条目进度与 `QuestDataOperator`
+
+Countable 类目标把条目进度写在**任务容器**里，键一般为 **`${task.id}.amount`** 等。脚本与 API 更推荐通过 **`QuestDataOperator(profile, task)`** 访问，内部统一加 **`task.id.`** 前缀：
+
+```kotlin
+import ink.ptms.chemdah.core.quest.QuestDataOperator
+
+val op = QuestDataOperator(profile, task)
+op["amount"]
+op["flag"] = true
+op.add("amount", 1)
+```
+
+内置 **`player data`** 条目读 **`profile.persistentDataContainer[goal.key]`**；**`quest data`** 读 **`quest.persistentDataContainer[goal.key]`**。详见 [自定义目标](./objective) 与 [条目类型](/plugin/chemdah/start/quest/task/type)。
+
+## 事件
+
+玩家级容器在 **`set` / `remove`** 时（非 `unchanged`、非静默）会触发：
+
+| 事件 | 可取消 |
+| --- | :---: |
+| `PlayerEvents.DataSet.Pre` / `Post` | Pre ✓ |
+| `PlayerEvents.DataRemove.Pre` / `Post` | Pre ✓ |
+
+任务实例容器对应 **`QuestEvents.DataSet.*`**、**`QuestEvents.DataRemove.*`**（字段含 `quest`）。监听 **Post** 可在数据变更后联动其它系统，与 **`player data` / `quest data`** 条目的 **`DataSet.Post`** 驱动方式一致。完整列表见 [事件参考](./events)。
+
+## Kether 与命令
+
+- Kether：**`profile data`**、**`quest data`** 等动作见 [脚本模块](/plugin/chemdah/start/module/script)。
+- 命令：**`/chemdah data`**、**`/chemdah quest data`** 见 [玩家数据](/plugin/chemdah/start/command/data) 与任务数据命令文档。
+- Placeholder：**`%chemdah_player_data_…%`** 等见 [PlaceholderAPI](/plugin/chemdah/start/placeholder)。
+
+## 与存储文档的关系
+
+| 需求 | 文档 |
+| --- | --- |
+| 只改关系库里的键名，不换整库 | [存档键映射](./persistence-key-codecs)（`PersistenceScope.PLAYER` / `QUEST`） |
+| 自建 MySQL / 角色存档，整库接管 | [自定义数据库](./database)（读档时 `unchanged` 填回 `persistentDataContainer`） |
+| 档案 API 与 `push` | [API 参考](./api) |
+
+## 示例
+
+```kotlin
+import ink.ptms.chemdah.api.ChemdahAPI.chemdahProfile
+import ink.ptms.chemdah.api.ChemdahAPI.isChemdahProfileLoaded
+import ink.ptms.chemdah.api.event.collect.PlayerEvents
+import taboolib.common.platform.event.SubscribeEvent
+
+@SubscribeEvent
+fun onPlayerDataPost(e: PlayerEvents.DataSet.Post) {
+    if (e.key != "my_counter") return
+    val profile = e.playerProfile
+    val quest = profile.getQuestById("daily_quest") ?: return
+    quest.persistentDataContainer["daily_synced"] = true
+}
+
+fun bumpCounter(player: Player) {
+    if (!player.isChemdahProfileLoaded) return
+    val c = player.chemdahProfile.persistentDataContainer
+    val n = c["my_counter", 0].toInt()
+    c["my_counter"] = n + 1
+}
+```
+
+## 相关
+
+- [引入依赖](./install) — 获取 `PlayerProfile` 与 `chemdahProfile`
+- [API 参考](./api) — `persistentDataContainer` 与 `isDataChanged`
+- [事件参考](./events) — `DataSet` / `DataRemove`

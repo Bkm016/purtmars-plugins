@@ -6,30 +6,36 @@ sidebar_position: 8
 
 # PlaceholderAPI
 
+需安装 [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/)，并保证 Chemdah 已加载。变量在解析时要求玩家 **任务档案已加载**（`isChemdahProfileLoaded`），否则 Literal 返回 **`ERROR`**，Kether 返回 **`...`**。
+
+等级相关变量依赖 [等级模块](./module/level)；领域变量依赖领域模块配置。
+
 ## Literal
 
-明文定义获取什么东西，前缀均为 `%ch_`。
+明文占位，扩展 ID 为 **`ch`**，写法 **`%ch_<name>_<body>%`**。`<name>` 为变量类型（不区分大小写），`<body>` 为参数（任务 ID、键名等，可含 `:`）。
 
 | 变量名 | 描述 |
-|--------|------|
-| `%ch_data_<KEY>%` | 获取玩家持久化数据，支持默认值语法 `<KEY>?:<DEFAULT>` |
-| `%ch_level_<ID>%` | 获取指定等级线的当前等级 |
-| `%ch_exp_<ID>%` | 获取指定等级线的当前经验值 |
-| `%ch_maxExp_<ID>%` | 获取指定等级线当前等级所需最大经验 |
-| `%ch_tracking%` | 当前追踪的任务 ID，未追踪返回 `null` |
-| `%ch_accepted_<QUEST>%` | 是否已接受指定任务（`true` / `false`） |
-| `%ch_proceed_<QUEST>%` | 是否正在进行指定任务，含组队共享（`true` / `false`） |
-| `%ch_completed_<QUEST>%` | 是否已完成指定任务（`true` / `false`） |
-| `%ch_checkAccept_<QUEST>%` | 检查任务接受条件，返回 `AcceptResult.Type` 枚举值 |
-| `%ch_questData_<QUEST>:<KEY>%` | 获取任务持久化数据，支持默认值语法 `<KEY>?:<DEFAULT>` |
-| `%ch_progressValue_<QUEST>:<TASK>%` | 获取指定条目的进度当前值 |
-| `%ch_progressTarget_<QUEST>:<TASK>%` | 获取指定条目的进度目标值 |
-| `%ch_progressPercent_<QUEST>:<TASK>%` | 获取指定条目的进度百分比（0.00 ~ 100.00） |
-| `%ch_realm%` | 获取玩家当前所在领域 ID，不在任何领域返回 `null` |
+| --- | --- |
+| `%ch_data_<KEY>%` | 玩家持久化数据；默认值 `%ch_data_<KEY>?:<DEFAULT>%` |
+| `%ch_level_<ID>%` | 等级线当前等级；等级线不存在为 `LEVEL_OPTION_NOT_FOUND` |
+| `%ch_exp_<ID>%` | 等级线当前经验 |
+| `%ch_maxExp_<ID>%` | 当前等级所需最大经验（实现标识为 `maxexp`） |
+| `%ch_tracking%` | 当前追踪任务 ID，未追踪为 `null`（同义：`track`） |
+| `%ch_accepted_<QUEST>%` | 是否已接受任务（同义：`accept`） |
+| `%ch_proceed_<QUEST>%` | 是否正在进行（含组队共享任务） |
+| `%ch_completed_<QUEST>%` | 是否已完成（同义：`complete`） |
+| `%ch_checkAccept_<QUEST>%` | 接受条件检查结果，为 `AcceptResult.Type` 枚举名（同义：`acceptcheck`） |
+| `%ch_questData_<QUEST>:<KEY>%` | 任务实例持久化数据；支持 `?:` 默认值 |
+| `%ch_progressValue_<QUEST>:<TASK>%` | 条目进度当前值；`<TASK>` 可省略，表示整任务汇总进度 |
+| `%ch_progressTarget_<QUEST>:<TASK>%` | 条目进度目标值 |
+| `%ch_progressPercent_<QUEST>:<TASK>%` | 进度百分比（约 0.00 ~ 100.00） |
+| `%ch_realm%` | 当前领域 ID，不在领域内为 `null`（同义：`realms`） |
+
+任务或条目不存在时，可能返回 **`QUEST_NOT_FOUND`**、**`TASK_NOT_FOUND`**。未内置且未注册的 `<name>` 会走扩展逻辑，无结果时为 **`UNSUPPORTED`**。
 
 <Callout type="info">
 
-`<QUEST>` 和 `<TASK>` 填写任务/条目的 ID，`<ID>` 填写等级线 ID，均在对应配置文件中定义。
+`<QUEST>`、`<TASK>` 为任务/条目 ID，`<ID>` 为等级线 ID，均在对应配置中定义。
 
 </Callout>
 
@@ -39,32 +45,67 @@ sidebar_position: 8
 - "追踪任务: %ch_tracking%"
 - "击杀进度: %ch_progressValue_main_quest:kill_boss% / %ch_progressTarget_main_quest:kill_boss%"
 - "战斗等级: %ch_level_combat%"
+- "自定义键: %ch_data_my_key?:0%"
 ```
 
 ## Kether
 
-执行 Kether 脚本，写法为 `%chemdah_<KetherScript>%`。
+执行 Chemdah 任务命名空间下的 Kether，扩展 ID 为 **`chemdah`**，写法 **`%chemdah_<脚本>%`**（参数整段作为脚本源）。
 
 ```
-%chemdah_profile data test%          获取玩家数据中的 "test" 变量
-%chemdah_quest accepted main_quest%  检查是否接受了 main_quest
+%chemdah_profile data test%
+%chemdah_quest accepted main_quest%
 ```
+
+脚本执行异常返回 **`<ERROR>`**；玩家为 null 时 **`<NO_PLAYER>`**。
 
 <Callout type="info">
 
-Kether 变量在执行时会等待脚本完成，若脚本出错会返回 `<ERROR>`；玩家数据未加载时返回 `...`。
+Kether 占位会同步等待脚本完成，复杂脚本不宜放在高频刷新处（如每 tick 记分板）。
 
 </Callout>
 
-## 自定义变量（API）
+## 自定义 Literal（API）
 
-如果你是开发者，可以通过 API 注册自定义 Literal 变量：
+### 注册占位
 
 ```kotlin
-PlaceholderForLiteral.registerPlaceholder("mykey", PlaceholderData(plugin) { profile, body ->
-    // body 是 %ch_mykey_<body>% 中的 body 部分
+import ink.ptms.chemdah.module.papi.PlaceholderData
+import ink.ptms.chemdah.module.papi.newPlaceholder
+
+newPlaceholder(plugin, "mykey") { profile, body ->
     profile.persistentDataContainer[body]?.toString() ?: "null"
-})
+}
 ```
 
-注册后即可使用 `%ch_mykey_<body>%` 访问。
+或：
+
+```kotlin
+PlaceholderData(plugin) { profile, body ->
+    profile.persistentDataContainer[body]?.toString() ?: "null"
+}.register("mykey")
+```
+
+注册后使用 **`%ch_mykey_<body>%`**，其中 `body` 为第一个 `_` 之后的全部参数。同一 `identifier` 重复注册会被忽略并打日志。
+
+### 监听 PlaceholderHookEvent
+
+未通过 `registerPlaceholder` 占用的 `<name>`，会触发 **`PlaceholderHookEvent`**，可在监听里写入 `result`：
+
+```kotlin
+import ink.ptms.chemdah.api.event.PlaceholderHookEvent
+import taboolib.common.platform.event.SubscribeEvent
+
+@SubscribeEvent
+fun onPlaceholder(e: PlaceholderHookEvent) {
+    if (e.identifier != "guild") return
+    e.result = e.parameter
+}
+```
+
+对应 **`%ch_guild_<parameter>%`**。字段说明见 [事件参考](./dev/events) 中 Hook 事件表。
+
+## 相关
+
+- [等级系统](./module/level) — `level` / `exp` / `maxExp` 的等级线配置
+- [开发 · 事件参考](./dev/events) — `PlaceholderHookEvent`
