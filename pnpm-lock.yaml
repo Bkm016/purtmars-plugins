@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@orama/orama':
+        specifier: ^3.1.18
+        version: 3.1.18
       '@orama/tokenizers':
         specifier: ^3.1.18
         version: 3.1.18

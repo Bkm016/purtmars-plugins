@@ -3,7 +3,8 @@ import { source } from '@/lib/source';
 import { createFromSource } from 'fumadocs-core/search/server';
 
 // 中文文档需 Mandarin 分词；english 会把中文当无词边界文本，几乎搜不到
-export const { GET } = createFromSource(source, {
+export const revalidate = false;
+export const { staticGET: GET } = createFromSource(source, {
   components: {
     tokenizer: createTokenizer(),
   },
