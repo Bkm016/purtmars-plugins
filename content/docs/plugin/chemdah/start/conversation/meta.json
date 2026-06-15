@@ -3,6 +3,7 @@
   "pages": [
     "agent",
     "main",
+    "transfer",
     "theme_chat",
     "theme_chest"
   ],

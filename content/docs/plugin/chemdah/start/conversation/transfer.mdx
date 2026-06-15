@@ -1,0 +1,108 @@
+---
+title: "对话转移"
+sidebar_position: 2
+---
+
+
+# 对话转移
+
+<Callout type="warn">
+
+本文由 AI 辅助生成，可能存在疏漏或与当前版本不一致。Chemdah 为闭源付费插件，请以你使用的版本、`api` 依赖与实际运行行为为准；疑问请联系作者或售后群（见 [服务](/plugin/chemdah/service)）。
+
+</Callout>
+
+`transfer` 用来在进入某个对话节点时，把当前对话源切换到另一个 NPC 或实体。它适合制作多角色连续对话，例如玩家先与向导交谈，随后同一个会话跳到守卫发言。
+
+<Callout type="warning">
+
+`transfer` 不是跳转命令，也不是回复选项字段。对话跳转仍然使用 `goto <节点>`，`transfer` 只决定进入目标节点后由哪个 NPC 或实体作为当前对话源。
+
+</Callout>
+
+## 配置位置
+
+`transfer` 配在要进入的目标对话节点上，也就是 `goto` 打开的那个节点。不要把它写在玩家回复选项里。
+
+在 `guide_start` 中执行 `goto guard_intro` 时，`transfer` 应该写在被打开的 `guard_intro` 节点上。`guide_start` 只负责显示第一段话，并通过 `goto` 决定下一个对话节点。
+
+```yaml
+guide_start:
+  npc id: "adyeshach guide_npc"
+  npc:
+    - "前面由守卫负责说明。"
+  player:
+    - reply: "请让守卫说明。"
+      then: |-
+        goto guard_intro
+
+guard_intro:
+  transfer:
+    id: "guard_npc"
+  npc:
+    - "这里是守卫。接下来由我说明规则。"
+  player:
+    - reply: "明白了。"
+      then: |-
+        talk "守卫点了点头。"
+```
+
+上面的流程是：玩家点击 `guide_npc` 打开 `guide_start`，选择回复后执行 `goto guard_intro`。进入 `guard_intro` 时，系统读取该节点的 `transfer.id`，把当前对话源切换到 `guard_npc`。
+
+## 入口节点转移
+
+入口节点也能配置 `transfer`，但它发生在会话创建之后。常规多角色对话优先把 `transfer` 写在 `goto` 进入的目标节点上。
+
+```yaml
+entry:
+  npc id: "adyeshach guide_npc"
+  transfer:
+    id: "guard_npc"
+  npc:
+    - "这句话会尝试以 guard_npc 作为当前对话源。"
+```
+
+这种写法只适合入口 NPC 负责触发，但第一段展示需要切到另一个 NPC 的场景。入口节点转移后，标题、展示来源和开始事件会使用转移后的来源；会话初始位置等创建时数据仍然来自入口来源。
+
+## 不同触发类型的 ID
+
+`transfer.id` 的含义取决于当前会话来源。常用写法如下：
+
+| 来源 | `transfer.id` 填什么 |
+|------|----------------------|
+| Adyeshach | 目标 Adyeshach 实体实例 ID，例如 `guard_npc` |
+| Citizens | 目标 Citizens NPC 的数字 ID，例如 `12` |
+| MythicMobs | 目标 MythicMobs 怪物内部 ID，例如 `GuardCaptain` |
+| 原版实体 | 目标 Bukkit 实体类型名或 `customName`，例如 `VILLAGER` 或 `guard_entity` |
+
+Adyeshach 示例：
+
+```yaml
+guard_intro:
+  transfer:
+    id: "guard_npc"
+  npc:
+    - "我是守卫。"
+```
+
+Citizens 示例：
+
+```yaml
+guard_intro:
+  transfer:
+    id: "12"
+  npc:
+    - "我是 12 号 NPC。"
+```
+
+## 生效条件
+
+`transfer` 只会在当前对话源支持转移时生效。通过 Adyeshach、Citizens、MythicMobs 或原版实体打开的对话可以使用；通过自白来源或只带位置的对话源打开时不能使用。命令如果是按 NPC 打开，仍然属于对应的 NPC 来源；如果是 self 自白打开，则不支持转移。
+
+转移目标也必须能被找到：
+
+- Adyeshach 目标需要和玩家在同一个世界，且距离玩家小于 10 格。
+- Citizens、MythicMobs 和原版实体目标需要在当前实体附近 10 格范围内。
+- `transfer.id` 必须填写目标实体的实际 ID，不是对话节点 ID。
+
+如果控制台提示 `Unable to conversation transfer`，通常表示当前节点配置了 `transfer.id`，但目标实体没有被找到，或当前对话来源不支持转移。

@@ -1,17 +1,17 @@
 {
   "title": "开始",
   "pages": [
-    "command",
-    "config",
-    "conversation",
-    "conversation-schema",
-    "dev",
     "install",
-    "module",
-    "placeholder",
-    "quest",
-    "quest-schema",
+    "config",
+    "command",
     "quickstart",
+    "conversation-schema",
+    "conversation",
+    "quest-schema",
+    "quest",
+    "module",
+    "dev",
+    "placeholder",
     "theme_yosin"
   ],
   "defaultOpen": false
