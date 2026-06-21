@@ -23,7 +23,7 @@ sidebar_position: 2
 some_quest:
   addon:
     control:
-      - $: check permission example.quest  # 检查权限
+      - $: permission example.quest  # 检查权限
 ```
 
 多行脚本写成列表：
@@ -34,7 +34,7 @@ some_quest:
     control:
       - $:
           - check level >= 10
-          - check permission vip.quest
+          - permission vip.quest
 ```
 
 ## 共存（coexist）
@@ -119,7 +119,7 @@ some_quest:
   addon:
     control:
       # 权限检查
-      - $: check permission example.quest
+      - $: permission example.quest
 
       # 同时进行的 daily 任务不超过 3 个
       - type: coexist

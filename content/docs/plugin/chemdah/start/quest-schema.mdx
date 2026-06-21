@@ -270,7 +270,7 @@ quest_id:
     control:
       # 脚本代理型（直接写 Kether 脚本）
       - $:
-          - "check permission example.quest"
+          - "permission example.quest"
 
       # 共存限制：限制同类型任务同时进行的数量
       - type: coexist
@@ -324,7 +324,7 @@ quest_id:
     # 类型：字符串 | 列表（Kether 脚本）
     # 所有脚本返回 true 时允许重新接受
     restart:
-      - "check permission quest.restart"
+      - "permission quest.restart"
 
     # --- timeout（超时）---
     timeout: "7d"
@@ -441,7 +441,7 @@ quest_id:
   agent:
     # 接受前执行，返回 false 可拦截接受
     accept: |
-      check permission quest.accept
+      permission quest.accept
 
     # 接受后执行
     accepted: |

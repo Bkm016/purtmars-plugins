@@ -12,7 +12,7 @@ sidebar_position: 7
 quest_daily:
   addon:
     restart:
-      - 'check permission quest.daily.restart'
+      - 'permission quest.daily.restart'
 ```
 
 多个条件同时存在时，全部满足才能重启：
@@ -21,7 +21,7 @@ quest_daily:
 quest_challenge:
   addon:
     restart:
-      - 'check permission challenge.redo'      # 需要有对应权限
+      - 'permission challenge.redo'      # 需要有对应权限
       - 'negative check player data banned'    # 没有被封禁标记
 ```
 
@@ -35,9 +35,9 @@ quest_challenge:
 quest_ranked:
   addon:
     restart:
-      - 'check permission ranked.retry'             # 有重试权限
-      - 'negative check player data banned'         # 没有被封禁
-      - 'perm check player data retry_count < 3'   # 重试次数未超限
+      - 'permission ranked.retry'             # 有重试权限
+      - 'not player data banned'              # 没有被封禁
+      - 'check player data retry_count < 3'   # 重试次数未超限
 ```
 
 <Callout type="info">
