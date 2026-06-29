@@ -76,7 +76,4 @@ title: "数据迁移"
 
 本命令只做 **SQLite → SQL 一次性搬迁**，不替代 [自定义数据库](./dev/database) 中的长期 `Database` 实现与进服/退服加载策略。迁移完成后，应保证配置持续使用 SQL，并验证任务、变量、玩家数据是否与迁移前一致。
 
-## 参考
-
-- 源码：`CommandChemdahMigration`（`chemdah-migration` / `export` / `dump`）
-- 存储抽象：`DatabaseSQLite`、`DatabaseSQL`
+命令用法可在游戏内执行 `/chemdah-migration` 查看帮助。
