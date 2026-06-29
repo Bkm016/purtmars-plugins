@@ -1,0 +1,82 @@
+---
+title: "数据迁移"
+---
+
+# 数据迁移
+
+<Callout type="warn">
+
+本文由 AI 辅助生成，可能存在疏漏或与当前版本不一致。Chemdah 为闭源付费插件，请以你使用的版本、`api` 依赖与实际运行行为为准；疑问请联系作者或售后群（见 [服务](/plugin/chemdah/service)）。
+
+</Callout>
+
+将 Chemdah 默认的 **SQLite** 本地库（插件目录下的 `data.db`）迁移到已在配置中启用的 **SQL** 数据源。迁移在服务端 **异步** 执行，采用分批读取、目标库 **单事务** 写入，结束时按表行数（含 `mode=1` 活跃行）校验一致性。
+
+<Callout type="warn">
+
+迁移前请确认 `config` 中 SQL 数据源已正确配置并可连接，详见 [自定义数据库](./dev/database)。目标库相关表必须 **为空**，否则会直接终止，避免覆盖脏数据。
+
+</Callout>
+
+<Callout type="info">
+
+建议在 **停服** 或 **无玩家在线** 时执行。迁移过程中不要依赖玩家任务读写；完成后切换为 SQL 运行前请自行备份 `data.db` 与数据库。
+
+</Callout>
+
+## 命令
+
+| 项目 | 说明 |
+| --- | --- |
+| 主命令 | `/chemdah-migration` |
+| 别名 | `/chmig` |
+| 权限 | `chemdah.command.migration` |
+
+### 子命令 `export` / `dump`
+
+将 SQLite 导出到当前配置的 SQL 库：
+
+```bash
+/chemdah-migration export
+/chemdah-migration dump
+```
+
+可选批次大小（默认 **500**，手动指定时最小 **100**）：
+
+```bash
+/chemdah-migration export 1000
+```
+
+批次越大，单次批量写入越多；过大会增加内存与事务压力，可按机器与数据量调整。
+
+## 迁移范围
+
+工具会读取插件数据目录中的 **`data.db`**，并自动发现任务相关分表后缀（与 SQLite 中 `quest` / `quest_data` 及带后缀的表一致）。按顺序迁移：
+
+1. **全局变量**（`variables`）
+2. **用户键值数据**（`user_data`；SQLite 中以玩家名为 `user`，SQL 侧会写入/复用 `user` 表并改为数值 `user` 外键）
+3. **各后缀任务表**（`quest`）及对应 **任务数据表**（`quest_data`；任务主键由旧字符串 ID 映射为 SQL 自增 ID）
+
+若某条任务数据找不到对应的新任务 ID，会 **跳过** 并在控制台提示跳过条数。
+
+## 执行过程与结果
+
+- 开始时提示批次大小与注意事项。
+- 各阶段输出进度（大量数据时按间隔汇报已处理条数）。
+- 成功：提交事务，并逐表输出 **行数 / 活跃行** 校验结果（`§a` 完成信息）。
+- 失败：目标连接 **回滚**，控制台输出错误原因。
+
+常见失败原因：
+
+- 找不到 `data.db`
+- 目标表已有数据（非空）
+- 校验阶段源表与目标表行数不一致
+
+## 与日常运维的关系
+
+本命令只做 **SQLite → SQL 一次性搬迁**，不替代 [自定义数据库](./dev/database) 中的长期 `Database` 实现与进服/退服加载策略。迁移完成后，应保证配置持续使用 SQL，并验证任务、变量、玩家数据是否与迁移前一致。
+
+## 参考
+
+- 源码：`CommandChemdahMigration`（`chemdah-migration` / `export` / `dump`）
+- 存储抽象：`DatabaseSQLite`、`DatabaseSQL`

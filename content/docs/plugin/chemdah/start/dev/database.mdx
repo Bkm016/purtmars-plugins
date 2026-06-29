@@ -18,7 +18,7 @@ sidebar_position: 6
 
 ## 适用场景
 
-Chemdah 在内存中维护每位在线玩家的 **`PlayerProfile`**（进行中任务、玩家级键值、完成记录等）。默认在插件 **ACTIVE** 阶段初始化 **`Database`**（别名 **`ChemdahDatabase`**），常见落盘为插件目录 **`data.db`（SQLite）** 或配置中的 **SQL**。
+Chemdah 在内存中维护每位在线玩家的 **`PlayerProfile`**（进行中任务、玩家级键值、完成记录等）。默认在插件 **ACTIVE** 阶段初始化 **`Database`**（别名 **`ChemdahDatabase`**），常见落盘为插件目录 **`data.db`（SQLite）** 或配置中的 **SQL**。从 SQLite 迁到 SQL 可使用 [数据迁移](../migration)。
 
 在以下需求下，需要 **实现并注册自定义 `Database`**，并通常 **关闭 Chemdah 自带的 Join/Quit 加载与释放**，改由自有事件驱动：
 

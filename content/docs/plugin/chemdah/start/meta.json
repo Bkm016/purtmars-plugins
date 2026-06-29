@@ -12,7 +12,8 @@
     "module",
     "dev",
     "placeholder",
-    "theme_yosin"
+    "theme_yosin",
+    "migration"
   ],
   "defaultOpen": false
 }
